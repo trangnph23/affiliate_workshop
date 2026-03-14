@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Affiliate Loop</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#fafaf8;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui,sans-serif;padding:24px}
+@media(prefers-color-scheme:dark){body{background:#111110}}
+.hint{font-size:13px;color:#888780;margin-bottom:14px;text-align:center}
+canvas{display:block;cursor:pointer}
+.info-box{margin-top:18px;width:560px;max-width:100%;min-height:88px;border-radius:12px;padding:16px 20px;border:1px solid #D3D1C7;background:#F1EFE8;transition:border-color 0.3s}
+@media(prefers-color-scheme:dark){.info-box{background:#1e1e1c;border-color:#444441}}
+.info-header{font-size:13px;font-weight:500;margin-bottom:8px;line-height:1.5}
+.info-bullets{list-style:none;display:flex;flex-direction:column;gap:4px}
+.info-bullets li{font-size:12px;color:#5F5E5A;display:flex;gap:8px;line-height:1.6}
+@media(prefers-color-scheme:dark){.info-bullets li{color:#B4B2A9}}
+.info-bullets li::before{content:"•";flex-shrink:0;color:#B4B2A9}
+</style>
+</head>
+<body>
+<div class="hint">Click any node to see the platform's role</div>
+<canvas id="c"></canvas>
+<div class="info-box" id="info">
+  <div class="info-header" id="info-header" style="color:#888780">Select a node above</div>
+  <ul class="info-bullets" id="info-bullets">
+    <li>Click any step in the loop to reveal what the platform does at that stage.</li>
+  </ul>
+</div>
+
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const SIZE = Math.min(window.innerWidth - 48, 580);
+cv.width = SIZE; cv.height = SIZE;
+const W = SIZE, H = SIZE, CX = W/2, CY = H/2;
+const R = SIZE * 0.32;
+const dark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+const BG    = dark ? '#111110' : '#fafaf8';
+const TXTS  = '#888780';
+const TEAL  = '#0F6E56', TEAL2  = '#E1F5EE';
+const PURP  = '#534AB7', PURP2  = '#EEEDFE';
+const CORAL = '#D85A30', CORAL2 = '#FAECE7';
+const s = SIZE / 520;
+
+const nodes = [
+  {
+    label:'More creators', sub:'registered & active', color:TEAL, fill:TEAL2,
+    action:'Onboarding & supply growth',
+    bullets:[
+      'Onboarding investments — subsidise creator setup & first campaigns',
+      'Traffic support — boost new creator content to help them gain traction',
+      'Brand connections — match creators with relevant sellers & categories',
+    ]
+  },
+  {
+    label:'More content', sub:'posts & livestreams', color:TEAL, fill:TEAL2,
+    action:'Content production support',
+    bullets:[
+      'Bookings — platform pays creators to post or go live',
+      'Freebies — product samples provided to creators for content',
+      'Production — outsourced livestream equipment & crew costs',
+      'Commission distribution — structure that motivates content output',
+    ]
+  },
+  {
+    label:'More traffic', sub:'views & impressions', color:TEAL, fill:TEAL2,
+    action:'Traffic expansion',
+    bullets:[
+      'Algorithm support — platform surfaces affiliate content to relevant audiences',
+      'Co-branding activities — joint campaigns between platform, sellers & creators',
+    ]
+  },
+  {
+    label:'More buyers', sub:'& more orders', color:TEAL, fill:TEAL2,
+    action:'Conversion enablement',
+    bullets:[
+      'Platform UX & UI — checkout flow, product pages, discovery surfaces',
+      'Promotion subsidies — platform-funded vouchers to reduce buyer friction',
+      'Curated assortments — surfacing the right products to the right buyers',
+    ]
+  },
+  {
+    label:'More sellers', sub:'attracted by volume', color:PURP, fill:PURP2,
+    action:'Seller growth infrastructure',
+    bullets:[
+      'Take rate pricing — competitive rates that attract quality sellers',
+      'Seller tools — dashboards, analytics, affiliate campaign management',
+      'Affiliate matching — platform connects sellers with the right creators',
+    ]
+  },
+  {
+    label:'Better products', sub:'variety & quality', color:PURP, fill:PURP2,
+    action:'Product & assortment intelligence',
+    bullets:[
+      'AI — personalisation, product recommendation, demand forecasting, dynamic pricing',
+    ]
+  },
+  {
+    label:'Better commissions', sub:'& creator bonuses', color:PURP, fill:PURP2,
+    action:'Creator reinvestment',
+    bullets:[
+      'Platform-funded commission — % per order paid directly to KOLs & creators',
+      'Bonus schemes — cash bonuses when creators hit GMV thresholds',
+    ]
+  },
+];
+
+const N = nodes.length;
+nodes.forEach((n,i) => { n.angle = -Math.PI/2 + (i/N)*Math.PI*2; n.r = R; });
+
+const particles = [];
+for(let i=0;i<140;i++){
+  particles.push({
+    angle:Math.random()*Math.PI*2,
+    r:(40+Math.random()*100)*s,
+    speed:0.005+Math.random()*0.006,
+    color:Math.random()>0.5?TEAL:PURP,
+    size:(1.2+Math.random()*1.6)*s,
+    opacity:0.2+Math.random()*0.4,
+  });
+}
+
+let tick=0, selected=null;
+
+function drawArc(sa,ea,color,t,dim){
+  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=2.5*s;ctx.globalAlpha=dim?0.2:1;
+  ctx.setLineDash([7*s,5*s]);ctx.lineDashOffset=-t*2*Math.PI*R;
+  ctx.beginPath();ctx.arc(CX,CY,R,sa,ea,false);ctx.stroke();ctx.restore();
+}
+function arrowAt(angle,color,dim){
+  const x=CX+Math.cos(angle)*R, y=CY+Math.sin(angle)*R;
+  ctx.save();ctx.translate(x,y);ctx.rotate(angle+Math.PI/2);
+  ctx.strokeStyle=color;ctx.lineWidth=2*s;ctx.setLineDash([]);ctx.globalAlpha=dim?0.2:1;
+  ctx.beginPath();ctx.moveTo(-5*s,-5*s);ctx.lineTo(0,0);ctx.lineTo(-5*s,5*s);ctx.stroke();
+  ctx.restore();
+}
+function pill(x,y,w,h,fill,stroke,alpha){
+  const r=h/2;
+  ctx.save();ctx.globalAlpha=alpha||1;
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arc(x+w-r,y+r,r,-Math.PI/2,Math.PI/2);ctx.lineTo(x+r,y+h);ctx.arc(x+r,y+r,r,Math.PI/2,-Math.PI/2);ctx.closePath();
+  ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();
+  ctx.restore();
+}
+function drawNode(n,i,pulse){
+  const px=CX+Math.cos(n.angle)*n.r, py=CY+Math.sin(n.angle)*n.r;
+  const w=120*s, h=44*s, x=px-w/2, y=py-h/2;
+  const isSel=selected===i, dim=selected!==null&&!isSel;
+  const sc=isSel?1.08:1+pulse*0.03;
+  ctx.save();ctx.translate(px,py);ctx.scale(sc,sc);ctx.translate(-px,-py);
+  pill(x,y,w,h,isSel?n.color:n.fill,n.color,dim?0.22:1);
+  ctx.globalAlpha=dim?0.22:1;
+  ctx.fillStyle=isSel?'#fff':n.color;ctx.font=`500 ${12*s}px system-ui,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(n.label,px,py-7*s);
+  ctx.fillStyle=isSel?'rgba(255,255,255,0.7)':TXTS;ctx.font=`${10*s}px system-ui,sans-serif`;
+  ctx.fillText(n.sub,px,py+8*s);
+  ctx.restore();
+}
+function drawHub(pulse){
+  const r=(46+pulse*2)*s, hasSel=selected!==null;
+  ctx.beginPath();ctx.arc(CX,CY,r,0,Math.PI*2);
+  ctx.fillStyle=hasSel?CORAL:CORAL2;ctx.fill();
+  ctx.strokeStyle=CORAL;ctx.lineWidth=hasSel?2:1.5;ctx.stroke();
+  ctx.fillStyle=hasSel?'#fff':CORAL;ctx.font=`500 ${12*s}px system-ui,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('Affiliate',CX,CY-7*s);
+  ctx.fillText(hasSel?'role \u2193':'loop',CX,CY+8*s);
+}
+
+function updateInfo(i){
+  const header=document.getElementById('info-header');
+  const bulletsEl=document.getElementById('info-bullets');
+  const box=document.getElementById('info');
+  if(i===null){
+    box.style.borderColor='#D3D1C7';
+    header.innerHTML='<span style="color:#888780">Select a node above</span>';
+    bulletsEl.innerHTML='<li>Click any step in the loop to reveal what the platform does at that stage.</li>';
+    return;
+  }
+  const n=nodes[i];
+  box.style.borderColor=n.color;
+  header.innerHTML=`<span style="color:${n.color}">${n.label}</span><span style="color:#B4B2A9;margin:0 8px">→</span><span style="color:${n.color}">${n.action}</span>`;
+  bulletsEl.innerHTML=n.bullets.map(b=>`<li>${b}</li>`).join('');
+}
+
+cv.addEventListener('click', e=>{
+  const rect=cv.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(W/rect.width), my=(e.clientY-rect.top)*(H/rect.height);
+  let hit=null;
+  nodes.forEach((n,i)=>{
+    const px=CX+Math.cos(n.angle)*n.r, py=CY+Math.sin(n.angle)*n.r;
+    if(Math.abs(mx-px)<65*s && Math.abs(my-py)<28*s) hit=i;
+  });
+  if(hit===selected) hit=null;
+  selected=hit;
+  updateInfo(selected);
+});
+
+function frame(){
+  tick+=0.009;
+  particles.forEach(p=>{p.angle+=p.speed;});
+  ctx.clearRect(0,0,W,H);ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);
+  const dim=selected!==null;
+  drawArc(nodes[0].angle,nodes[3].angle,TEAL,tick,dim);
+  arrowAt(nodes[3].angle-0.15,TEAL,dim);
+  drawArc(nodes[3].angle,nodes[0].angle+Math.PI*2,PURP,tick,dim);
+  arrowAt(nodes[0].angle+Math.PI*2-0.15,PURP,dim);
+  particles.forEach(p=>{
+    const x=CX+Math.cos(p.angle)*p.r, y=CY+Math.sin(p.angle)*p.r;
+    ctx.save();ctx.beginPath();ctx.arc(x,y,p.size,0,Math.PI*2);
+    ctx.fillStyle=p.color;ctx.globalAlpha=dim?0.05:p.opacity;ctx.fill();ctx.restore();
+  });
+  const hp=Math.sin(tick*3)*0.5+0.5;
+  nodes.forEach((n,i)=>drawNode(n,i,Math.sin(tick*3-i*0.9)*0.5+0.5));
+  drawHub(hp);
+  requestAnimationFrame(frame);
+}
+frame();
+</script>
+</body>
+</html>
