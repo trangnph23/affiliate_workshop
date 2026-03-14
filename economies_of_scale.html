@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Economies of Scale — Affiliate</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#fff;color:#2C2C2A;padding:32px;max-width:720px;margin:0 auto}
+.section-label{font-size:11px;font-weight:500;color:#888780;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px}
+.card{background:#F1EFE8;border-radius:8px;padding:12px 14px}
+.card-label{font-size:12px;color:#888780;margin-bottom:4px}
+.card-value{font-size:20px;font-weight:500}
+table{width:100%;border-collapse:collapse;margin-bottom:28px;font-size:13px}
+th{text-align:left;padding:8px 10px;color:#888780;font-weight:400;border-bottom:1px solid #E0DED8}
+td{padding:8px 10px;border-bottom:1px solid #F1EFE8;color:#5F5E5A;line-height:1.5}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 9px;border-radius:4px;font-size:11px;font-weight:500}
+.chart-wrap{position:relative;width:100%;height:340px;margin-bottom:16px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:16px}
+.leg{display:flex;align-items:center;gap:6px;font-size:12px;color:#5F5E5A}
+.leg-line{width:18px;height:3px;border-radius:2px}
+.note{background:#F1EFE8;border-radius:8px;padding:12px 16px;font-size:13px;color:#5F5E5A;line-height:1.7}
+</style>
+</head>
+<body>
+
+<div class="section-label">What drives each cost type</div>
+<table>
+  <thead>
+    <tr><th>Cost type</th><th>Affiliate examples</th><th>At scale</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="badge" style="background:#E6F1FB;color:#185FA5">Fixed</span></td>
+      <td>Tech platform, AI engine, headcount, legal</td>
+      <td>Same cost ÷ more GMV = cheaper per order</td>
+    </tr>
+    <tr>
+      <td><span class="badge" style="background:#FAEEDA;color:#854F0B">Variable</span></td>
+      <td>Booking costs, production, commissions, vouchers</td>
+      <td>Volume = negotiating power = lower rate per unit</td>
+    </tr>
+    <tr>
+      <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">Revenue</span></td>
+      <td>Take Rate% × GMV</td>
+      <td>Grows linearly — every $1 GMV = same % earned</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="section-label">Cost vs revenue as GMV scales</div>
+<div class="chart-wrap">
+  <canvas id="chart"></canvas>
+</div>
+
+<div class="legend">
+  <div class="leg"><div class="leg-line" style="background:#0F6E56"></div>Revenue</div>
+  <div class="leg"><div class="leg-line" style="background:#444441"></div>Total costs</div>
+  <div class="leg"><div class="leg-line" style="background:#185FA5;height:2px;border-top:2px dashed #185FA5;background:transparent"></div>Fixed costs</div>
+  <div class="leg"><div class="leg-line" style="background:#854F0B;height:2px;border-top:2px dashed #854F0B;background:transparent"></div>Variable costs</div>
+  <div class="leg"><div class="leg-line" style="background:rgba(83,74,183,0.25);width:18px;height:10px;border-radius:2px"></div>Profit margin</div>
+</div>
+
+<div class="note">
+  Fixed costs stay flat — the same tech and team serves 10× the GMV. Variable costs grow, but at a declining rate per unit as the platform gains negotiating power. Total costs rise slower than revenue — margin expands automatically.
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const labels = ['Yr 1','Yr 2','Yr 3','Yr 4','Yr 5','Yr 6','Yr 7','Yr 8'];
+const gmv    = [1, 2.5, 5, 9, 15, 24, 36, 50];
+const rev    = gmv.map(g => +(g * 0.08).toFixed(2));
+const fixed  = [0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19];
+const varRate= [0.120,0.105,0.090,0.078,0.068,0.060,0.055,0.050];
+const variable = gmv.map((g,i) => +(g * varRate[i]).toFixed(2));
+const total  = fixed.map((f,i) => +(f + variable[i]).toFixed(2));
+const margin = rev.map((r,i) => +(Math.max(0, r - total[i])).toFixed(2));
+
+new Chart(document.getElementById('chart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      { label:'Revenue',       data:rev,      borderColor:'#0F6E56', backgroundColor:'transparent', borderWidth:2.5, pointBackgroundColor:'#0F6E56', pointRadius:4, tension:0.4 },
+      { label:'Total costs',   data:total,    borderColor:'#444441', backgroundColor:'transparent', borderWidth:2,   pointBackgroundColor:'#444441', pointRadius:4, tension:0.4 },
+      { label:'Fixed costs',   data:fixed,    borderColor:'#185FA5', backgroundColor:'transparent', borderWidth:1.5, borderDash:[4,3], pointRadius:0, tension:0.1 },
+      { label:'Variable costs',data:variable, borderColor:'#854F0B', backgroundColor:'transparent', borderWidth:1.5, borderDash:[6,4], pointRadius:0, tension:0.4 },
+      { label:'Margin',        data:margin,   borderColor:'transparent', backgroundColor:'rgba(83,74,183,0.12)', fill:'-4', tension:0.4, pointRadius:0 },
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    interaction:{ mode:'index', intersect:false },
+    plugins:{
+      legend:{ display:false },
+      tooltip:{
+        callbacks:{
+          label: ctx => {
+            if(ctx.dataset.label==='Margin') return `  Profit margin: $${ctx.parsed.y.toFixed(2)}M`;
+            return `  ${ctx.dataset.label}: $${ctx.parsed.y.toFixed(2)}M`;
+          }
+        }
+      }
+    },
+    scales:{
+      x:{ grid:{ color:'rgba(136,135,128,0.1)' }, ticks:{ color:'#888780', font:{ size:12 } } },
+      y:{ grid:{ color:'rgba(136,135,128,0.1)' }, ticks:{ color:'#888780', font:{ size:12 }, callback: v=>'$'+v+'M' }, title:{ display:true, text:'$ million', color:'#888780', font:{ size:11 } } }
+    }
+  }
+});
+</script>
+</body>
+</html>
