@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Affiliate Tension Map</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#fff;font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.wrap{width:100%;max-width:860px;display:flex;flex-direction:column;align-items:center;gap:16px}
+canvas{display:block;cursor:pointer}
+.hint{font-size:12px;color:#888780;text-align:center}
+.info{width:100%;min-height:80px;padding:16px 20px;border-radius:10px;border:1px solid #D3D1C7;background:#F7F6F3;font-size:13px;color:#5F5E5A;line-height:1.7;transition:border-color 0.3s}
+.info-title{font-size:13px;font-weight:600;margin-bottom:6px}
+.info-tension{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.tension-item{display:flex;gap:8px;font-size:12px;color:#5F5E5A}
+.tension-item::before{content:"⚡";font-size:11px;flex-shrink:0;margin-top:1px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hint">Click any player to reveal their flows and tensions with the platform</div>
+<canvas id="c"></canvas>
+<div class="info" id="info">
+  <div class="info-title" style="color:#888780">Select a player to see their role and tensions</div>
+  <div style="font-size:12px;color:#B4B2A9">Each player wants something different from the same pool of GMV — clicking reveals where the conflicts live.</div>
+</div>
+</div>
+
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const SIZE = Math.min(window.innerWidth - 48, 860);
+cv.width = SIZE; cv.height = SIZE * 0.72;
+const W = cv.width, H = cv.height;
+const s = W / 860;
+
+// Colors
+const TEAL   = '#0F6E56', TEAL2  = '#E1F5EE', TEALB  = '#5DCAA5';
+const PURP   = '#534AB7', PURP2  = '#EEEDFE', PURPB  = '#AFA9EC';
+const AMBER  = '#854F0B', AMBER2 = '#FAEEDA', AMBERB = '#EF9F27';
+const CORAL  = '#993C1D', CORAL2 = '#FAECE7', CORALB = '#F0997B';
+const ORANGE = '#D85A30';
+const GRAY   = '#5F5E5A', GRAY2  = '#F1EFE8', GRAYB  = '#B4B2A9';
+const MUTED  = '#888780';
+
+// Layout — platform centre, 4 players in corners
+const CX = W * 0.50, CY = H * 0.50;
+const PW = 140 * s, PH = 60 * s;
+const HW = 110 * s, HH = 64 * s; // platform (hub) size
+
+const corners = {
+  sellers: { x: W * 0.08,  y: H * 0.08,  label: 'Sellers',    sub: 'brands & merchants',  fill: AMBER2, border: AMBERB, txt: AMBER },
+  kols:    { x: W * 0.72,  y: H * 0.08,  label: 'MCN / KOLs', sub: 'creators & agencies', fill: TEAL2,  border: TEALB,  txt: TEAL  },
+  buyers:  { x: W * 0.72,  y: H * 0.70,  label: 'Buyers',     sub: 'end consumers',        fill: CORAL2, border: CORALB, txt: CORAL },
+  sellers2:null,
+};
+
+// Redefine cleanly
+const players = {
+  sellers: { cx: W*0.14, cy: H*0.18, label:'Sellers',    sub:'brands & merchants',  fill:AMBER2, bdr:AMBERB, txt:AMBER },
+  kols:    { cx: W*0.86, cy: H*0.18, label:'MCN / KOLs', sub:'creators & agencies', fill:TEAL2,  bdr:TEALB,  txt:TEAL  },
+  buyers:  { cx: W*0.86, cy: H*0.82, label:'Buyers',     sub:'end consumers',        fill:CORAL2, bdr:CORALB, txt:CORAL },
+  sellers2:{ cx: W*0.14, cy: H*0.82, label:'Sellers*',   sub:'(pass-through costs)', fill:AMBER2, bdr:AMBERB, txt:AMBER },
+};
+
+// Simplify to 3 corner players + platform hub
+const P = {
+  sellers: { cx: W*0.12, cy: H*0.15, label:'Sellers',    sub:'brands & merchants',  fill:AMBER2, bdr:AMBERB, txt:AMBER },
+  kols:    { cx: W*0.88, cy: H*0.15, label:'MCN / KOLs', sub:'creators & agencies', fill:TEAL2,  bdr:TEALB,  txt:TEAL  },
+  buyers:  { cx: W*0.88, cy: H*0.85, label:'Buyers',     sub:'end consumers',        fill:CORAL2, bdr:CORALB, txt:CORAL },
+  mcn2:    { cx: W*0.12, cy: H*0.85, label:'Sellers',    sub:'pass-through costs',   fill:AMBER2, bdr:AMBERB, txt:AMBER },
+};
+
+// Actually use only 3 corners + platform at centre
+// Sellers TL, KOLs TR, Buyers BR, Platform Centre — bottom-left empty or add a 4th
+// Let's do: Sellers TL, KOLs TR, Buyers BR, (Sellers/costs BL)
+// Better: 4 players: Sellers TL, KOLs TR, Buyers BR, [nothing] BL — platform centre
+
+const nodes = {
+  sellers: { id:'sellers', cx:W*0.14, cy:H*0.18, w:PW, h:PH, label:'Sellers',    sub:'brands & merchants',  fill:AMBER2, bdr:AMBERB, txt:AMBER },
+  kols:    { id:'kols',    cx:W*0.86, cy:H*0.18, w:PW, h:PH, label:'MCN / KOLs', sub:'creators & agencies', fill:TEAL2,  bdr:TEALB,  txt:TEAL  },
+  buyers:  { id:'buyers',  cx:W*0.86, cy:H*0.82, w:PW, h:PH, label:'Buyers',     sub:'end consumers',       fill:CORAL2, bdr:CORALB, txt:CORAL },
+  hub:     { id:'hub',     cx:CX,     cy:CY,     w:HW, h:HH, label:'Platform',   sub:'TikTok Shop, Shopee', fill:PURP2,  bdr:PURPB,  txt:PURP  },
+};
+
+// Flows between hub and each player
+// Each flow: { from, to, label, color, dashed, side: 'above'|'below' }
+const flows = {
+  sellers: [
+    { label:'Products & inventory →', color:TEAL,   dashed:false, pos:0.35, side:'above' },
+    { label:'← GMV − take rate',       color:PURP,   dashed:false, pos:0.55, side:'below' },
+    { label:'← Booking costs (paid)',  color:ORANGE, dashed:true,  pos:0.75, side:'below' },
+  ],
+  kols: [
+    { label:'← Links, tools, data',    color:TEAL,   dashed:false, pos:0.35, side:'above' },
+    { label:'Commission + bonuses →',  color:PURP,   dashed:false, pos:0.55, side:'below' },
+    { label:'Booking costs →',         color:ORANGE, dashed:true,  pos:0.72, side:'below' },
+  ],
+  buyers: [
+    { label:'← Content & discovery',   color:TEAL,   dashed:false, pos:0.35, side:'above' },
+    { label:'Payment →',               color:PURP,   dashed:false, pos:0.55, side:'below' },
+    { label:'← Voucher subsidies',     color:ORANGE, dashed:true,  pos:0.72, side:'below' },
+  ],
+};
+
+// Tension info for info panel
+const info = {
+  sellers: {
+    color: AMBER,
+    title: 'Sellers ↔ Platform',
+    flows: [
+      'Sellers give: products, inventory, seller-funded freebies',
+      'Platform gives: GMV (minus take rate), distribution, matching',
+      'Platform pays: booking costs to get creators to promote seller products',
+    ],
+    tensions: [
+      'Commission war — sellers want to pay 3%, creators won\'t work below 10%. Platform sits in the middle.',
+      'Take rate pressure — as GMV grows, platform raises take rate. Sellers push back.',
+      'Attribution disputes — sellers question whether affiliate-driven GMV is truly incremental.',
+    ]
+  },
+  kols: {
+    color: TEAL,
+    title: 'MCN / KOLs ↔ Platform',
+    flows: [
+      'Platform gives: affiliate links, tracking tools, product data, audience matching',
+      'Platform pays: commission per order, booking fees, production support, bonuses',
+      'KOLs give: content, audience trust, traffic, conversion influence',
+    ],
+    tensions: [
+      'Commission rate — KOLs want maximum %. Platform must balance creator income vs seller margin.',
+      'Exclusivity — top KOLs work across platforms. Platform wants loyalty, KOLs want optionality.',
+      'Bonus threshold — if targets are too high, KOLs feel cheated. Too low, platform overpays.',
+    ]
+  },
+  buyers: {
+    color: CORAL,
+    title: 'Buyers ↔ Platform',
+    flows: [
+      'Buyers give: payment — the only real cash input into the entire chain',
+      'Platform gives: curated content, discovery, vouchers, checkout experience',
+      'Platform pays: voucher subsidies to reduce buyer friction and drive conversion',
+    ],
+    tensions: [
+      'Voucher trap — subsidised vouchers train buyers to only purchase on promotion. Remove them and GMV collapses.',
+      'Trust vs conversion — buyers discover via creator content but may abandon if checkout UX is poor.',
+      'Price sensitivity — in saturated markets buyers comparison-shop across platforms, reducing platform stickiness.',
+    ]
+  },
+};
+
+let selected = null;
+
+function roundRect(x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+  ctx.fillStyle = fill; ctx.fill();
+  ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke();
+}
+
+function drawNode(n, dimmed, highlighted) {
+  const alpha = dimmed ? 0.25 : 1;
+  const sc = highlighted ? 1.05 : 1;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(n.cx, n.cy);
+  ctx.scale(sc, sc);
+  ctx.translate(-n.cx, -n.cy);
+  roundRect(n.cx - n.w/2, n.cy - n.h/2, n.w, n.h, 8*s, n.fill, n.bdr);
+  ctx.fillStyle = n.txt;
+  ctx.font = `500 ${13*s}px system-ui,sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(n.label, n.cx, n.cy - 8*s);
+  ctx.fillStyle = n.bdr;
+  ctx.font = `${11*s}px system-ui,sans-serif`;
+  ctx.fillText(n.sub, n.cx, n.cy + 10*s);
+  ctx.restore();
+}
+
+function drawFlow(n1, n2, flowList, active) {
+  const dx = n2.cx - n1.cx, dy = n2.cy - n1.cy;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  const ux = dx/dist, uy = dy/dist;
+  const nx = -uy, ny = ux; // normal
+
+  flowList.forEach((f, i) => {
+    const offset = (i - (flowList.length-1)/2) * 18 * s;
+    const x1 = n1.cx + ux*(n1.w/2+6*s) + nx*offset;
+    const y1 = n1.cy + uy*(n1.h/2+6*s) + ny*offset;
+    const x2 = n2.cx - ux*(n2.w/2+6*s) + nx*offset;
+    const y2 = n2.cy - uy*(n2.h/2+6*s) + ny*offset;
+
+    ctx.save();
+    ctx.globalAlpha = active ? 1 : 0.15;
+    ctx.strokeStyle = f.color;
+    ctx.lineWidth = active ? 1.8 : 0.8;
+    if (f.dashed) ctx.setLineDash([5*s, 4*s]);
+    else ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+
+    // Arrowhead
+    if (active) {
+      const ax = x2, ay = y2;
+      const angle = Math.atan2(y2-y1, x2-x1);
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(ax - Math.cos(angle-0.4)*8*s, ay - Math.sin(angle-0.4)*8*s);
+      ctx.lineTo(ax, ay);
+      ctx.lineTo(ax - Math.cos(angle+0.4)*8*s, ay - Math.sin(angle+0.4)*8*s);
+      ctx.stroke();
+    }
+
+    // Label
+    if (active) {
+      const mx = (x1+x2)/2 + nx*14*s;
+      const my = (y1+y2)/2 + ny*14*s;
+      ctx.setLineDash([]);
+      ctx.fillStyle = f.color;
+      ctx.font = `${10*s}px system-ui,sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.globalAlpha = 1;
+      ctx.fillText(f.label, mx, my);
+    }
+    ctx.restore();
+  });
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  const ids = ['sellers','kols','buyers'];
+
+  // Draw flows
+  ids.forEach(id => {
+    const n = nodes[id];
+    const hub = nodes.hub;
+    const active = selected === id;
+    drawFlow(n, hub, flows[id], active);
+  });
+
+  // Draw nodes
+  Object.values(nodes).forEach(n => {
+    const dimmed = selected !== null && selected !== n.id && n.id !== 'hub';
+    const highlighted = selected === n.id || (n.id === 'hub' && selected !== null);
+    drawNode(n, dimmed, highlighted);
+  });
+
+  // Hub label update
+  if (selected) {
+    const hub = nodes.hub;
+    ctx.save();
+    ctx.fillStyle = '#D85A30';
+    ctx.font = `500 ${10*s}px system-ui,sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('click again', hub.cx, hub.cy + hub.h/2 + 14*s);
+    ctx.restore();
+  }
+}
+
+function updateInfo(id) {
+  const box = document.getElementById('info');
+  if (!id) {
+    box.style.borderColor = '#D3D1C7';
+    box.innerHTML = `<div class="info-title" style="color:#888780">Select a player to see their role and tensions</div><div style="font-size:12px;color:#B4B2A9">Each player wants something different from the same pool of GMV — clicking reveals where the conflicts live.</div>`;
+    return;
+  }
+  const d = info[id];
+  box.style.borderColor = d.color;
+  box.innerHTML = `
+    <div class="info-title" style="color:${d.color}">${d.title}</div>
+    <div style="margin-top:6px;font-size:12px;color:#5F5E5A">
+      ${d.flows.map(f => `<div style="margin-bottom:3px">• ${f}</div>`).join('')}
+    </div>
+    <div style="margin-top:10px;font-size:11px;font-weight:500;color:#888780;text-transform:uppercase;letter-spacing:0.05em">Tensions</div>
+    <div class="info-tension" style="margin-top:4px">
+      ${d.tensions.map(t => `<div class="tension-item">${t}</div>`).join('')}
+    </div>`;
+}
+
+cv.addEventListener('click', e => {
+  const rect = cv.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (W / rect.width);
+  const my = (e.clientY - rect.top) * (H / rect.height);
+  let hit = null;
+  ['sellers','kols','buyers'].forEach(id => {
+    const n = nodes[id];
+    if (Math.abs(mx - n.cx) < n.w/2 + 10 && Math.abs(my - n.cy) < n.h/2 + 10) hit = id;
+  });
+  if (hit === selected) hit = null;
+  selected = hit;
+  updateInfo(selected);
+  draw();
+});
+
+draw();
+</script>
+</body>
+</html>
