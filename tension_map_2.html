@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Affiliate Tension Map</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#fff;font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.wrap{width:100%;max-width:860px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.hint{font-size:12px;color:#888780;text-align:center}
+.info{width:100%;min-height:80px;padding:16px 20px;border-radius:10px;border:1px solid #D3D1C7;background:#F7F6F3;font-size:13px;color:#5F5E5A;line-height:1.7;transition:border-color 0.3s}
+.info-title{font-size:13px;font-weight:600;margin-bottom:8px}
+.flow-row{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.flow-item{display:flex;align-items:flex-start;gap:8px;font-size:12px}
+.tension-label{font-size:11px;font-weight:500;color:#888780;text-transform:uppercase;letter-spacing:0.05em;margin:8px 0 4px}
+.tension-item{display:flex;gap:6px;font-size:12px;color:#5F5E5A;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hint">Click any player to see what flows between them and the platform — and where the tension lives</div>
+<canvas id="c" style="cursor:pointer"></canvas>
+<div class="info" id="info">
+  <div class="info-title" style="color:#888780">Select a player above</div>
+  <div style="font-size:12px;color:#B4B2A9">Arrow direction matters — it shows who gives what to whom. Click any corner player to reveal the flows and tensions.</div>
+</div>
+</div>
+<script>
+const cv=document.getElementById('c');
+const ctx=cv.getContext('2d');
+const SIZE=Math.min(window.innerWidth-48,860);
+cv.width=SIZE;cv.height=SIZE*0.75;
+const W=cv.width,H=cv.height,s=SIZE/860;
+
+const TEAL='#0F6E56',TEAL2='#E1F5EE',TEALB='#5DCAA5';
+const PURP='#534AB7',PURP2='#EEEDFE',PURPB='#AFA9EC';
+const AMBER='#854F0B',AMBER2='#FAEEDA',AMBERB='#EF9F27';
+const CORAL='#993C1D',CORAL2='#FAECE7',CORALB='#F0997B';
+const GREEN='#0F6E56',BLUE='#534AB7',ORANGE='#D85A30';
+
+const CX=W*0.50,CY=H*0.50;
+const PW=148*s,PH=58*s,HW=130*s,HH=62*s;
+
+const nodes={
+  sellers:{id:'sellers',cx:W*0.12,cy:H*0.18,w:PW,h:PH,label:'Sellers',   sub:'brands & merchants', fill:AMBER2,bdr:AMBERB,txt:AMBER},
+  kols:   {id:'kols',   cx:W*0.88,cy:H*0.18,w:PW,h:PH,label:'MCN / KOLs',sub:'creators & agencies',fill:TEAL2, bdr:TEALB, txt:TEAL },
+  buyers: {id:'buyers', cx:W*0.88,cy:H*0.82,w:PW,h:PH,label:'Buyers',    sub:'end consumers',      fill:CORAL2,bdr:CORALB,txt:CORAL},
+  hub:    {id:'hub',    cx:CX,    cy:CY,    w:HW,h:HH,label:'Platform',  sub:'TikTok Shop, Shopee',fill:PURP2, bdr:PURPB, txt:PURP },
+};
+
+// Each flow: from, to, label, color, dashed, perpendicular offset multiplier
+const flowDefs={
+  sellers:[
+    {label:'Products & inventory', color:GREEN, from:'sellers',to:'hub',    dashed:false,off:-1.5},
+    {label:'GMV − take rate',      color:BLUE,  from:'hub',   to:'sellers', dashed:false,off:-0.5},
+    {label:'Distribution & reach', color:BLUE,  from:'hub',   to:'sellers', dashed:false,off:0.5 },
+    {label:'Booking investment',   color:ORANGE,from:'hub',   to:'sellers', dashed:true, off:1.5 },
+  ],
+  kols:[
+    {label:'Content & traffic',    color:GREEN, from:'kols',  to:'hub',     dashed:false,off:1.5 },
+    {label:'Audience trust',       color:GREEN, from:'kols',  to:'hub',     dashed:false,off:0.5 },
+    {label:'Commission + bonuses', color:BLUE,  from:'hub',   to:'kols',    dashed:false,off:-0.5},
+    {label:'Links, tools & data',  color:BLUE,  from:'hub',   to:'kols',    dashed:false,off:-1.5},
+    {label:'Booking + production', color:ORANGE,from:'hub',   to:'kols',    dashed:true, off:-2.5},
+  ],
+  buyers:[
+    {label:'Payment',              color:BLUE,  from:'buyers',to:'hub',     dashed:false,off:1.5 },
+    {label:'Content & discovery',  color:GREEN, from:'hub',   to:'buyers',  dashed:false,off:0.5 },
+    {label:'Curated products',     color:GREEN, from:'hub',   to:'buyers',  dashed:false,off:-0.5},
+    {label:'Voucher subsidies',    color:ORANGE,from:'hub',   to:'buyers',  dashed:true, off:-1.5},
+  ],
+};
+
+const infoData={
+  sellers:{
+    color:AMBER,title:'Sellers ↔ Platform',
+    flows:[
+      {dir:'→',color:GREEN, text:'Sellers give: products & inventory to list on platform'},
+      {dir:'←',color:BLUE,  text:'Platform gives: GMV minus take rate, distribution & reach'},
+      {dir:'←',color:ORANGE,text:'Platform invests: booking costs to attract creators to seller products (platform cost)'},
+    ],
+    tensions:[
+      'Commission war — sellers want to pay creators 3%, creators won\'t work below 10%. Platform mediates.',
+      'Take rate pressure — as platform power grows, take rate rises. Sellers have little leverage.',
+      'Attribution — sellers question whether affiliate GMV is incremental or just cannibalising other channels.',
+    ]
+  },
+  kols:{
+    color:TEAL,title:'MCN / KOLs ↔ Platform',
+    flows:[
+      {dir:'→',color:GREEN, text:'KOLs give: content, traffic, audience trust, conversion influence'},
+      {dir:'←',color:BLUE,  text:'Platform gives: commission per order, affiliate links, tools & performance data'},
+      {dir:'←',color:ORANGE,text:'Platform pays: booking fees, production costs, GMV threshold bonuses'},
+    ],
+    tensions:[
+      'Commission rate — KOLs want maximum %. Platform must balance creator income vs seller margins vs own costs.',
+      'Exclusivity — top KOLs work across platforms. Platform wants loyalty, KOLs want optionality.',
+      'Bonus thresholds — too high and KOLs disengage, too easy and platform overpays.',
+    ]
+  },
+  buyers:{
+    color:CORAL,title:'Buyers ↔ Platform',
+    flows:[
+      {dir:'→',color:BLUE,  text:'Buyers give: payment — the only real cash input into the entire chain'},
+      {dir:'←',color:GREEN, text:'Platform gives: content discovery, curated products, seamless checkout'},
+      {dir:'←',color:ORANGE,text:'Platform subsidises: vouchers to reduce buyer friction and drive conversion'},
+    ],
+    tensions:[
+      'Voucher trap — subsidised vouchers train buyers to only buy on promotion. Remove them and GMV collapses.',
+      'Trust dependency — buyers come via creator content but abandon if the checkout experience breaks it.',
+      'Price sensitivity — saturated markets push buyers to comparison-shop, reducing platform stickiness.',
+    ]
+  },
+};
+
+let selected=null;
+
+function rr(x,y,w,h,r,fill,stroke,alpha){
+  ctx.save();ctx.globalAlpha=alpha||1;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  ctx.fillStyle=fill;ctx.fill();
+  ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();
+  ctx.restore();
+}
+
+function drawNode(n,dimmed,highlighted){
+  const alpha=dimmed?0.18:1,sc=highlighted?1.06:1;
+  ctx.save();
+  ctx.translate(n.cx,n.cy);ctx.scale(sc,sc);ctx.translate(-n.cx,-n.cy);
+  rr(n.cx-n.w/2,n.cy-n.h/2,n.w,n.h,8*s,n.fill,n.bdr,alpha);
+  ctx.globalAlpha=alpha;
+  ctx.fillStyle=n.txt;ctx.font=`600 ${13*s}px system-ui,sans-serif`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(n.label,n.cx,n.cy-9*s);
+  ctx.fillStyle=n.bdr;ctx.font=`${10*s}px system-ui,sans-serif`;
+  ctx.fillText(n.sub,n.cx,n.cy+9*s);
+  ctx.restore();
+}
+
+function arrowTip(x,y,angle,color){
+  const L=8*s;
+  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=1.6;ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(x-Math.cos(angle-0.38)*L,y-Math.sin(angle-0.38)*L);
+  ctx.lineTo(x,y);
+  ctx.lineTo(x-Math.cos(angle+0.38)*L,y-Math.sin(angle+0.38)*L);
+  ctx.stroke();ctx.restore();
+}
+
+function drawFlows(key,active){
+  const alpha=active?1:0.10;
+  flowDefs[key].forEach(f=>{
+    const A=nodes[f.from],B=nodes[f.to];
+    const dx=B.cx-A.cx,dy=B.cy-A.cy,dist=Math.sqrt(dx*dx+dy*dy);
+    const ux=dx/dist,uy=dy/dist;
+    // perpendicular normal
+    const nx=-uy,ny=ux;
+    const gap=12*s; // spacing between parallel lines
+    const ox=nx*f.off*gap,oy=ny*f.off*gap;
+    const mg=10*s;
+    const x1=A.cx+ux*(A.w/2+mg)+ox,y1=A.cy+uy*(A.h/2+mg)+oy;
+    const x2=B.cx-ux*(B.w/2+mg)+ox,y2=B.cy-uy*(B.h/2+mg)+oy;
+
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.strokeStyle=f.color;ctx.lineWidth=active?1.8:0.7;
+    ctx.setLineDash(f.dashed?[5*s,4*s]:[]);
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+    ctx.restore();
+
+    if(active){
+      arrowTip(x2,y2,Math.atan2(y2-y1,x2-x1),f.color);
+      // Label offset perpendicular outward from line midpoint
+      const midX=(x1+x2)/2,midY=(y1+y2)/2;
+      const labelOff=20*s;
+      // Push label away from centre
+      const awayX=midX-CX,awayY=midY-CY;
+      const awayDist=Math.sqrt(awayX*awayX+awayY*awayY)||1;
+      const lx=midX+(awayX/awayDist)*labelOff;
+      const ly=midY+(awayY/awayDist)*labelOff;
+      ctx.save();
+      ctx.fillStyle=f.color;ctx.font=`${9.5*s}px system-ui,sans-serif`;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(f.label,lx,ly);
+      ctx.restore();
+    }
+  });
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ['sellers','kols','buyers'].forEach(id=>drawFlows(id,selected===id));
+  ['sellers','kols','buyers'].forEach(id=>{
+    drawNode(nodes[id],selected!==null&&selected!==id,selected===id);
+  });
+  drawNode(nodes.hub,false,selected!==null);
+}
+
+function updateInfo(id){
+  const box=document.getElementById('info');
+  if(!id){
+    box.style.borderColor='#D3D1C7';
+    box.innerHTML=`<div class="info-title" style="color:#888780">Select a player above</div><div style="font-size:12px;color:#B4B2A9">Arrow direction matters — it shows who gives what to whom. Click any corner player to reveal the flows and tensions.</div>`;
+    return;
+  }
+  const d=infoData[id];
+  box.style.borderColor=d.color;
+  const fHTML=d.flows.map(f=>`<div class="flow-item"><span style="color:${f.color};font-weight:700;min-width:18px">${f.dir}</span><span>${f.text}</span></div>`).join('');
+  const tHTML=d.tensions.map(t=>`<div class="tension-item"><span style="color:#D85A30;flex-shrink:0">⚡</span><span>${t}</span></div>`).join('');
+  box.innerHTML=`<div class="info-title" style="color:${d.color}">${d.title}</div><div class="flow-row">${fHTML}</div><div class="tension-label">Tensions</div>${tHTML}`;
+}
+
+cv.addEventListener('click',e=>{
+  const r=cv.getBoundingClientRect();
+  const mx=(e.clientX-r.left)*(W/r.width),my=(e.clientY-r.top)*(H/r.height);
+  let hit=null;
+  ['sellers','kols','buyers'].forEach(id=>{
+    const n=nodes[id];
+    if(Math.abs(mx-n.cx)<n.w/2+12&&Math.abs(my-n.cy)<n.h/2+12)hit=id;
+  });
+  if(hit===selected)hit=null;
+  selected=hit;updateInfo(selected);draw();
+});
+
+draw();
+</script>
+</body>
+</html>
