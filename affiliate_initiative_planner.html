@@ -1,0 +1,312 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{padding:1rem 0;font-family:system-ui,sans-serif}
+.section{margin-bottom:1.5rem}
+.section-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px}
+.inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:1.5rem}
+.input-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px}
+.input-label{font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px}
+.input-card input{width:100%;font-size:18px;font-weight:500;color:var(--color-text-primary);background:transparent;border:none;outline:none;padding:0}
+.gap-bar{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:14px 18px;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.gap-number{font-size:22px;font-weight:500}
+.gap-label{font-size:12px;color:var(--color-text-tertiary);margin-top:2px}
+.progress-wrap{flex:1;height:8px;background:var(--color-border-tertiary);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px;transition:width 0.4s ease,background 0.3s}
+.initiatives{display:flex;flex-direction:column;gap:8px}
+.init-row{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;transition:border-color 0.2s,background 0.2s;cursor:pointer}
+.init-row.active{border-color:var(--color-border-info);background:var(--color-background-info)}
+.init-row.active .init-node{color:var(--color-text-info)}
+.init-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.init-check{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--color-border-secondary);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.init-row.active .init-check{background:var(--color-background-info);border-color:var(--color-text-info)}
+.checkmark{width:10px;height:10px;opacity:0;transition:opacity 0.2s}
+.init-row.active .checkmark{opacity:1}
+.init-name{font-size:13px;font-weight:500;color:var(--color-text-primary);flex:1}
+.init-node{font-size:11px;color:var(--color-text-tertiary);background:var(--color-background-secondary);padding:2px 8px;border-radius:10px;flex-shrink:0}
+.init-controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+.init-field{display:flex;flex-direction:column;gap:3px}
+.init-field-label{font-size:10px;color:var(--color-text-tertiary)}
+.init-field input{font-size:12px;font-weight:500;color:var(--color-text-primary);background:transparent;border:none;border-bottom:1px solid var(--color-border-tertiary);outline:none;padding:2px 0;width:100%}
+.init-gmv{font-size:12px;font-weight:500;color:var(--color-text-info);text-align:right}
+.summary{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:16px 18px;margin-top:1.5rem}
+.summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:10px}
+.sum-card{background:var(--color-background-primary);border-radius:var(--border-radius-md);padding:10px 12px;border:0.5px solid var(--color-border-tertiary)}
+.sum-label{font-size:10px;color:var(--color-text-tertiary);margin-bottom:4px}
+.sum-val{font-size:16px;font-weight:500}
+.verdict{margin-top:12px;font-size:12px;color:var(--color-text-secondary);line-height:1.6;padding:10px 12px;border-radius:var(--border-radius-md);border-left:3px solid var(--color-border-tertiary)}
+</style>
+
+<div class="wrap">
+
+<div class="section-label">Baseline & target</div>
+<div class="inputs">
+  <div class="input-card">
+    <div class="input-label">Daily GMV baseline ($)</div>
+    <input id="daily" type="number" value="80000" oninput="recalc()">
+  </div>
+  <div class="input-card">
+    <div class="input-label">Days in month</div>
+    <input id="days" type="number" value="30" oninput="recalc()">
+  </div>
+  <div class="input-card">
+    <div class="input-label">Monthly GMV target ($)</div>
+    <input id="target" type="number" value="3000000" oninput="recalc()">
+  </div>
+</div>
+
+<div class="gap-bar">
+  <div>
+    <div class="gap-number" id="gap-num">$600K</div>
+    <div class="gap-label">gap to close with initiatives</div>
+  </div>
+  <div style="flex:1;max-width:320px">
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--color-text-tertiary);margin-bottom:4px">
+      <span id="covered-label">$0 covered</span>
+      <span id="gap-pct">0%</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-fill" id="progress-fill" style="width:0%;background:#0F6E56"></div>
+    </div>
+  </div>
+  <div style="text-align:right">
+    <div class="gap-number" id="remaining-num" style="color:#D85A30">$600K</div>
+    <div class="gap-label">still uncovered</div>
+  </div>
+</div>
+
+<div class="section-label">Initiative menu — pick from the flywheel</div>
+<div class="initiatives" id="init-list"></div>
+
+<div class="summary">
+  <div class="section-label" style="margin-bottom:0">Plan summary</div>
+  <div class="summary-grid">
+    <div class="sum-card">
+      <div class="sum-label">Baseline GMV</div>
+      <div class="sum-val" id="s-baseline">$2.4M</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">Initiative GMV</div>
+      <div class="sum-val" id="s-init" style="color:#0F6E56">$0</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">Projected total</div>
+      <div class="sum-val" id="s-total">$2.4M</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">vs target</div>
+      <div class="sum-val" id="s-vs">-$600K</div>
+    </div>
+  </div>
+  <div class="verdict" id="verdict">Select initiatives above to build your monthly plan.</div>
+</div>
+</div>
+
+<script>
+const INITIATIVES = [
+  {
+    id:'recruit',
+    name:'Creator recruitment drive',
+    node:'More creators',
+    desc:'Pay booking fees to onboard new creators. Estimate uplift based on new active creators × avg GMV/creator.',
+    fields:[
+      {id:'new_creators', label:'New creators recruited', default:50},
+      {id:'gmv_per_creator', label:'Avg GMV/creator ($)', default:2000},
+      {id:'active_rate', label:'% who actually post (%)', default:60},
+    ],
+    calc: f => f.new_creators * f.gmv_per_creator * (f.active_rate/100),
+  },
+  {
+    id:'booking',
+    name:'Content booking campaign',
+    node:'More content',
+    desc:'Pay existing creators to increase post frequency. Estimate uplift from incremental posts × conversion.',
+    fields:[
+      {id:'creators_targeted', label:'Creators targeted', default:200},
+      {id:'extra_posts', label:'Extra posts/creator', default:4},
+      {id:'gmv_per_post', label:'GMV per post ($)', default:300},
+    ],
+    calc: f => f.creators_targeted * f.extra_posts * f.gmv_per_post,
+  },
+  {
+    id:'cobranding',
+    name:'Co-branding & traffic push',
+    node:'More traffic',
+    desc:'Joint campaigns with top sellers + algorithm boost. Estimate uplift from incremental impressions × CTR × CVR × AOV.',
+    fields:[
+      {id:'extra_impressions', label:'Extra impressions (000s)', default:5000},
+      {id:'ctr', label:'CTR (%)', default:3},
+      {id:'cvr', label:'CVR (%)', default:4},
+      {id:'aov', label:'AOV ($)', default:35},
+    ],
+    calc: f => (f.extra_impressions*1000) * (f.ctr/100) * (f.cvr/100) * f.aov,
+  },
+  {
+    id:'voucher',
+    name:'Targeted voucher campaign',
+    node:'More buyers',
+    desc:'Platform-funded vouchers for first-time or lapsed buyers. Estimate incremental buyers × AOV.',
+    fields:[
+      {id:'voucher_budget', label:'Voucher budget ($)', default:30000},
+      {id:'voucher_value', label:'Avg voucher value ($)', default:5},
+      {id:'aov2', label:'AOV ($)', default:35},
+    ],
+    calc: f => (f.voucher_budget / f.voucher_value) * f.aov2,
+  },
+  {
+    id:'bundle',
+    name:'Bundle & upsell promotion',
+    node:'More GMV / AOV',
+    desc:'Increase units per basket through bundling or "buy 2 get discount" mechanics. Estimate AOV uplift × order volume.',
+    fields:[
+      {id:'monthly_orders', label:'Est. monthly orders', default:15000},
+      {id:'aov_uplift', label:'AOV uplift per order ($)', default:8},
+      {id:'attach_rate', label:'% orders affected (%)', default:20},
+    ],
+    calc: f => f.monthly_orders * f.aov_uplift * (f.attach_rate/100),
+  },
+  {
+    id:'premium',
+    name:'Premium SKU seeding',
+    node:'Better products',
+    desc:'Seed high-margin hero products to top KOLs. Estimate GMV from premium SKU uplift.',
+    fields:[
+      {id:'kols_seeded', label:'KOLs seeded', default:30},
+      {id:'premium_gmv', label:'GMV/KOL from premium SKU ($)', default:5000},
+      {id:'success_rate', label:'Success rate (%)', default:50},
+    ],
+    calc: f => f.kols_seeded * f.premium_gmv * (f.success_rate/100),
+  },
+  {
+    id:'bonus',
+    name:'Creator bonus scheme',
+    node:'Better commissions',
+    desc:'Set GMV threshold bonuses to motivate top creators to push harder. Estimate uplift from incremental effort.',
+    fields:[
+      {id:'creators_on_scheme', label:'Creators on scheme', default:80},
+      {id:'uplift_per_creator', label:'Avg GMV uplift/creator ($)', default:1500},
+      {id:'hit_rate', label:'% who hit threshold (%)', default:40},
+    ],
+    calc: f => f.creators_on_scheme * f.uplift_per_creator * (f.hit_rate/100),
+  },
+];
+
+const state = {};
+INITIATIVES.forEach(init => {
+  state[init.id] = { active: false, fields: {} };
+  init.fields.forEach(f => { state[init.id].fields[f.id] = f.default; });
+});
+
+function fmt(n) {
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(2) + 'M';
+  if (n >= 1000) return '$' + Math.round(n/1000) + 'K';
+  return '$' + Math.round(n);
+}
+
+function getBaseline() {
+  const daily = parseFloat(document.getElementById('daily').value) || 0;
+  const days  = parseFloat(document.getElementById('days').value)  || 30;
+  return daily * days;
+}
+function getTarget() {
+  return parseFloat(document.getElementById('target').value) || 0;
+}
+
+function calcInitGMV(init) {
+  const f = state[init.id].fields;
+  return Math.round(init.calc(f));
+}
+
+function recalc() {
+  const baseline = getBaseline();
+  const target   = getTarget();
+  const gap      = Math.max(0, target - baseline);
+
+  let totalInit = 0;
+  INITIATIVES.forEach(init => {
+    if (state[init.id].active) totalInit += calcInitGMV(init);
+  });
+
+  const covered   = Math.min(totalInit, gap);
+  const remaining = Math.max(0, gap - totalInit);
+  const pct       = gap > 0 ? Math.min(100, Math.round(totalInit / gap * 100)) : 0;
+  const total     = baseline + totalInit;
+
+  document.getElementById('gap-num').textContent = fmt(gap);
+  document.getElementById('covered-label').textContent = fmt(covered) + ' covered';
+  document.getElementById('gap-pct').textContent = pct + '%';
+  document.getElementById('remaining-num').textContent = fmt(remaining);
+  document.getElementById('remaining-num').style.color = remaining === 0 ? '#0F6E56' : '#D85A30';
+
+  const fill = document.getElementById('progress-fill');
+  fill.style.width = pct + '%';
+  fill.style.background = pct >= 100 ? '#0F6E56' : pct >= 60 ? '#854F0B' : '#D85A30';
+
+  document.getElementById('s-baseline').textContent = fmt(baseline);
+  document.getElementById('s-init').textContent = fmt(totalInit);
+  document.getElementById('s-total').textContent = fmt(total);
+  const vs = total - target;
+  document.getElementById('s-vs').textContent = (vs >= 0 ? '+' : '') + fmt(Math.abs(vs));
+  document.getElementById('s-vs').style.color = vs >= 0 ? '#0F6E56' : '#D85A30';
+
+  const activeCount = INITIATIVES.filter(i => state[i.id].active).length;
+  let verdict = '';
+  if (activeCount === 0) {
+    verdict = 'No initiatives selected. Your projected GMV equals baseline only.';
+  } else if (pct >= 100) {
+    verdict = `Your ${activeCount} initiative${activeCount>1?'s':''} project ${fmt(totalInit)} in incremental GMV — enough to close the gap and hit target. Review cost assumptions before committing budget.`;
+  } else if (pct >= 60) {
+    verdict = `Your initiatives cover ${pct}% of the gap (${fmt(covered)} of ${fmt(gap)}). You need ${fmt(remaining)} more — consider adding another initiative or increasing assumptions on existing ones.`;
+  } else {
+    verdict = `Your initiatives only cover ${pct}% of the gap so far. Either the initiatives are under-resourced, or you need to reconsider which flywheel lever is most broken for your situation.`;
+  }
+  document.getElementById('verdict').textContent = verdict;
+
+  // Update individual initiative GMV displays
+  INITIATIVES.forEach(init => {
+    const el = document.getElementById('gmv-'+init.id);
+    if (el) el.textContent = state[init.id].active ? fmt(calcInitGMV(init)) : '—';
+  });
+}
+
+function buildUI() {
+  const list = document.getElementById('init-list');
+  list.innerHTML = '';
+  INITIATIVES.forEach(init => {
+    const row = document.createElement('div');
+    row.className = 'init-row' + (state[init.id].active ? ' active' : '');
+    row.id = 'row-'+init.id;
+
+    const fieldsHTML = init.fields.map(f => `
+      <div class="init-field">
+        <div class="init-field-label">${f.label}</div>
+        <input type="number" value="${state[init.id].fields[f.id]}"
+          oninput="state['${init.id}'].fields['${f.id}']=parseFloat(this.value)||0;recalc()"
+          onclick="event.stopPropagation()">
+      </div>`).join('');
+
+    row.innerHTML = `
+      <div class="init-top">
+        <div class="init-check" id="check-${init.id}">
+          <svg class="checkmark" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" fill="none" stroke="var(--color-text-info)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="init-name">${init.name}</div>
+        <div class="init-node">${init.node}</div>
+        <div class="init-gmv" id="gmv-${init.id}">—</div>
+      </div>
+      <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px;line-height:1.5">${init.desc}</div>
+      <div class="init-controls">${fieldsHTML}</div>`;
+
+    row.addEventListener('click', e => {
+      if (e.target.tagName === 'INPUT') return;
+      state[init.id].active = !state[init.id].active;
+      row.className = 'init-row' + (state[init.id].active ? ' active' : '');
+      recalc();
+    });
+
+    list.appendChild(row);
+  });
+  recalc();
+}
+
+buildUI();
+</script>
