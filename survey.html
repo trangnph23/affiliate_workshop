@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bạn Là Màu Gì?</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --r: #E8321A; --r-light: #FAECE7; --r-mid: #F09579; --r-dark: #993C1D;
+    --y: #D4860A; --y-light: #FAEEDA; --y-mid: #EF9F27; --y-dark: #854F0B;
+    --g: #3B7D1A; --g-light: #EAF3DE; --g-mid: #97C459; --g-dark: #3B6D11;
+    --b: #185FA5; --b-light: #E6F1FB; --b-mid: #85B7EB; --b-dark: #185FA5;
+    --bg: #F7F5F0;
+    --text: #1a1a18;
+    --muted: #6b6b67;
+    --border: rgba(0,0,0,0.1);
+    --card: #ffffff;
+    --radius: 14px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ---- VIEWS ---- */
+  .view { display: none; min-height: 100vh; }
+  .view.active { display: flex; flex-direction: column; }
+
+  /* ---- LANDING ---- */
+  #view-landing {
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    background: var(--bg);
+  }
+  .landing-dots {
+    display: flex; gap: 10px; justify-content: center; margin-bottom: 2rem;
+  }
+  .landing-dots span {
+    width: 18px; height: 18px; border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .landing-dots span:nth-child(1) { background: var(--r); animation-delay: 0s; }
+  .landing-dots span:nth-child(2) { background: var(--y); animation-delay: 0.3s; }
+  .landing-dots span:nth-child(3) { background: var(--g); animation-delay: 0.6s; }
+  .landing-dots span:nth-child(4) { background: var(--b); animation-delay: 0.9s; }
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:0.7} 50%{transform:scale(1.25);opacity:1} }
+
+  .landing-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 8vw, 3.2rem);
+    line-height: 1.1;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+  .landing-sub {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 320px;
+    line-height: 1.6;
+    margin: 0 auto 2.5rem;
+  }
+  .btn-primary {
+    display: inline-block;
+    padding: 14px 36px;
+    background: var(--text);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.15s;
+    letter-spacing: 0.01em;
+  }
+  .btn-primary:hover { transform: translateY(-1px); opacity: 0.85; }
+  .facilitator-link {
+    margin-top: 2.5rem;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .facilitator-link a {
+    color: var(--muted);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  /* ---- SURVEY ---- */
+  #view-survey {
+    padding: 0;
+    background: var(--bg);
+  }
+  .survey-header {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--bg);
+    padding: 1rem 1.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .progress-bar {
+    height: 3px;
+    background: rgba(0,0,0,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--text);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .progress-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .survey-body {
+    padding: 1.5rem;
+    max-width: 560px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .question-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--border);
+    animation: fadeUp 0.3s ease both;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .q-number {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .q-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px;
+    line-height: 1.4;
+    color: var(--text);
+    margin-bottom: 1.25rem;
+  }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--bg);
+  }
+  .option:hover { border-color: rgba(0,0,0,0.25); background: white; }
+  .option.selected { background: var(--text); border-color: var(--text); }
+  .option.selected .opt-text { color: white; }
+  .opt-radio {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 1.5px solid rgba(0,0,0,0.2);
+    flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .option.selected .opt-radio { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.5); }
+  .option.selected .opt-radio::after { content:''; width:6px; height:6px; border-radius:50%; background:white; display:block; }
+  .opt-text { font-size: 14px; line-height: 1.5; color: var(--text); }
+
+  .survey-footer {
+    padding: 1.5rem;
+    max-width: 560px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .btn-submit {
+    width: 100%;
+    padding: 15px;
+    background: var(--text);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    letter-spacing: 0.01em;
+  }
+  .btn-submit:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn-submit:not(:disabled):hover { transform: translateY(-1px); opacity: 0.85; }
+
+  /* ---- RESULT ---- */
+  #view-result {
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2rem 1.5rem 3rem;
+  }
+  .result-inner { max-width: 480px; width: 100%; margin: 0 auto; }
+  .result-badge {
+    width: 80px; height: 80px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    margin: 0 auto 1.5rem;
+    animation: pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes pop { from{transform:scale(0)} to{transform:scale(1)} }
+  .result-eyebrow {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .result-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.5rem, 10vw, 3.5rem);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.4s 0.2s ease both;
+  }
+  .result-card {
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    animation: fadeUp 0.4s 0.3s ease both;
+  }
+  .result-desc {
+    font-size: 15px;
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+  }
+  .result-traits {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .trait-pill {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 100px;
+  }
+  .result-ecom {
+    background: white;
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+    animation: fadeUp 0.4s 0.4s ease both;
+  }
+  .result-ecom h3 {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .result-ecom p { font-size: 14px; line-height: 1.6; color: var(--text); }
+  .result-actions {
+    display: flex; flex-direction: column; gap: 10px;
+    animation: fadeUp 0.4s 0.5s ease both;
+  }
+  .btn-secondary {
+    padding: 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 100px;
+    background: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .btn-secondary:hover { border-color: var(--text); color: var(--text); }
+
+  /* ---- FACILITATOR ---- */
+  #view-facilitator {
+    background: #0f0f0d;
+    color: white;
+    padding: 2rem 1.5rem;
+    min-height: 100vh;
+  }
+  .fac-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+  .fac-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+  }
+  .fac-total {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+  }
+  .fac-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-bottom: 2rem;
+  }
+  .fac-card {
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .fac-card-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    opacity: 0.8;
+  }
+  .fac-card-count {
+    font-family: 'DM Serif Display', serif;
+    font-size: 3rem;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .fac-card-pct {
+    font-size: 13px;
+    opacity: 0.7;
+  }
+  .fac-bar {
+    position: absolute; bottom: 0; left: 0;
+    height: 4px;
+    transition: width 0.6s ease;
+  }
+  .fac-actions {
+    display: flex; gap: 10px; flex-wrap: wrap;
+  }
+  .fac-btn {
+    padding: 10px 20px;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 100px;
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.7);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .fac-btn:hover { background: rgba(255,255,255,0.12); color: white; }
+  .fac-btn.danger { border-color: rgba(232,50,26,0.4); color: rgba(232,50,26,0.8); }
+  .fac-btn.danger:hover { background: rgba(232,50,26,0.15); color: #E8321A; }
+  .fac-legend {
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .fac-legend-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .fac-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+  .fac-legend-text { font-size: 12px; line-height: 1.5; color: rgba(255,255,255,0.6); }
+  .fac-legend-name { font-size: 13px; font-weight: 500; color: white; margin-bottom: 2px; }
+  .live-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: rgba(255,255,255,0.5);
+    padding: 4px 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 100px;
+  }
+  .live-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #3dd68c;
+    animation: blink 1.5s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+</style>
+</head>
+<body>
+
+<!-- LANDING -->
+<div class="view active" id="view-landing">
+  <div class="landing-dots">
+    <span></span><span></span><span></span><span></span>
+  </div>
+  <h1 class="landing-title">Bạn là<br><em>màu gì?</em></h1>
+  <p class="landing-sub">8 câu hỏi nhanh để khám phá màu sắc tính cách của bạn — dựa trên mô hình của Thomas Erikson.</p>
+  <button class="btn-primary" onclick="startSurvey()">Bắt đầu →</button>
+  <p class="facilitator-link">Bạn là người điều phối? <a onclick="showFacilitator()">Xem tổng quan</a></p>
+</div>
+
+<!-- SURVEY -->
+<div class="view" id="view-survey">
+  <div class="survey-header">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="progress-label" id="progress-label">0 of 8 answered</div>
+  </div>
+  <div class="survey-body" id="survey-body"></div>
+  <div class="survey-footer">
+    <button class="btn-submit" id="btn-submit" disabled onclick="submitSurvey()">Xem kết quả của tôi</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="view" id="view-result">
+  <div class="result-inner" id="result-inner"></div>
+</div>
+
+<!-- FACILITATOR -->
+<div class="view" id="view-facilitator">
+  <div class="fac-header">
+    <div>
+      <div class="fac-title">Bảng điều phối</div>
+      <div class="fac-total" id="fac-total">0 responses</div>
+    </div>
+    <div class="live-badge"><div class="live-dot"></div> Trực tiếp</div>
+  </div>
+  <div class="fac-grid" id="fac-grid"></div>
+  <div class="fac-actions">
+    <button class="fac-btn" onclick="refreshFacilitator()">↻ Làm mới</button>
+    <button class="fac-btn" onclick="showView('view-landing')">← Quay lại</button>
+    <button class="fac-btn danger" onclick="resetData()">Xoá toàn bộ dữ liệu</button>
+  </div>
+  <div class="fac-legend" id="fac-legend"></div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    text: "Khi bắt đầu một dự án mới, bản năng đầu tiên của bạn là...",
+    options: [
+      { text: "Đứng ra dẫn dắt và định hướng ngay lập tức", c: "R" },
+      { text: "Kéo cả nhóm vào, tạo hứng khởi cho mọi người", c: "Y" },
+      { text: "Đảm bảo mọi người đều hiểu rõ và thoải mái trước", c: "G" },
+      { text: "Lập kế hoạch, thu thập dữ liệu và đánh giá rủi ro trước", c: "B" }
+    ]
+  },
+  {
+    text: "Cuộc họp kéo dài quá giờ. Bạn sẽ...",
+    options: [
+      { text: "Kết thúc ngay — ra quyết định và đi tiếp thôi", c: "R" },
+      { text: "Tiếp tục — ý tưởng đang chạy rất tốt mà", c: "Y" },
+      { text: "Áy náy vì còn người chưa được nói", c: "G" },
+      { text: "Thầm nhận ra rằng agenda đã không được tuân thủ", c: "B" }
+    ]
+  },
+  {
+    text: "Ai đó phản hồi tiêu cực về công việc của bạn. Bạn sẽ...",
+    options: [
+      { text: "Trân trọng sự thẳng thắn và bỏ qua ngay", c: "R" },
+      { text: "Hơi chạnh lòng lúc đầu, nhưng lấy lại tinh thần nhanh", c: "Y" },
+      { text: "Lo lắng xem mối quan hệ có bị ảnh hưởng không", c: "G" },
+      { text: "Muốn biết chính xác sai ở đâu và tại sao", c: "B" }
+    ]
+  },
+  {
+    text: "Câu nào nghe giống bạn nhất?",
+    options: [
+      { text: "\"Cứ quyết định đi, sai thì sửa sau.\"", c: "R" },
+      { text: "\"Giữ đà đi, đừng để mất năng lượng!\"", c: "Y" },
+      { text: "\"Tôi chỉ muốn mọi người trong nhóm đều ổn.\"", c: "G" },
+      { text: "\"Mình xem dữ liệu trước rồi mới quyết được không?\"", c: "B" }
+    ]
+  },
+  {
+    text: "Nhóm của bạn bị trễ deadline. Phản ứng của bạn là...",
+    options: [
+      { text: "Bực bội — bây giờ làm gì tiếp theo, không cần giải thích", c: "R" },
+      { text: "Lạc quan — mình bù lại được, đừng mất khí thế", c: "Y" },
+      { text: "Lo lắng — nhóm có ổn không, có ai quá tải không?", c: "G" },
+      { text: "Phân tích — quy trình đã sai ở bước nào chính xác?", c: "B" }
+    ]
+  },
+  {
+    text: "Khi mua sắm online, bạn thường...",
+    options: [
+      { text: "Mua ngay nếu thấy ổn", c: "R" },
+      { text: "Chia sẻ với bạn bè và hỏi ý kiến", c: "Y" },
+      { text: "Đọc kỹ review, đặc biệt là review tiêu cực", c: "G" },
+      { text: "So sánh đủ mọi lựa chọn trên nhiều tab", c: "B" }
+    ]
+  },
+  {
+    text: "Trong buổi brainstorm nhóm, bạn thường là người...",
+    options: [
+      { text: "Thúc giục chọn một ý và triển khai ngay", c: "R" },
+      { text: "Tung ra những ý tưởng táo bạo và sáng tạo nhất", c: "Y" },
+      { text: "Đảm bảo những người ít nói hơn cũng được lắng nghe", c: "G" },
+      { text: "Đặt những câu hỏi khó về tính khả thi", c: "B" }
+    ]
+  },
+  {
+    text: "Người quen biết bạn rõ sẽ nói rằng bạn...",
+    options: [
+      { text: "Làm được việc và không vòng vo", c: "R" },
+      { text: "Làm sáng bừng cả phòng và thích kết nối mọi người", c: "Y" },
+      { text: "Đáng tin cậy, điềm tĩnh và quan tâm sâu sắc", c: "G" },
+      { text: "Cẩn thận, tỉ mỉ và luôn chuẩn bị kỹ", c: "B" }
+    ]
+  }
+];
+
+const COLOURS = {
+  R: {
+    name: "Đỏ", emoji: "🔴",
+    headline: "Người Dẫn Dắt",
+    desc: "Tập trung vào kết quả, quyết đoán và thẳng thắn. Bạn hành động nhanh và kỳ vọng người khác theo kịp. Bạn ghét sự kém hiệu quả và thích nắm quyền kiểm soát.",
+    ecom: "Trong thương mại điện tử, bạn là người thúc đẩy tỷ lệ chuyển đổi, cắt giảm tranh luận và đòi hỏi rõ ràng về ROI. Điểm yếu: hành động quá nhanh đến mức bỏ qua sự đồng cảm với người dùng.",
+    traits: ["Quyết đoán", "Cạnh tranh", "Thẳng thắn", "Hướng kết quả", "Nhanh nhẹn"],
+    bg: "#FAECE7", text: "#993C1D", accent: "#E8321A", pill: "#F5C4B3"
+  },
+  Y: {
+    name: "Vàng", emoji: "🟡",
+    headline: "Người Truyền Cảm Hứng",
+    desc: "Nhiệt tình, cởi mở và lạc quan. Bạn tạo năng lượng cho mọi không gian và yêu thích những ý tưởng lớn. Bạn phát triển nhờ sự kết nối, được chú ý và động lực sáng tạo.",
+    ecom: "Trong thương mại điện tử, bạn nhận ra xu hướng trước khi chúng bùng nổ và kéo cả nhóm theo tầm nhìn táo bạo. Điểm yếu: bán giấc mơ trước khi hạ tầng sẵn sàng.",
+    traits: ["Nhiệt tình", "Sáng tạo", "Thuyết phục", "Lạc quan", "Ưu tiên con người"],
+    bg: "#FAEEDA", text: "#854F0B", accent: "#D4860A", pill: "#FAC775"
+  },
+  G: {
+    name: "Xanh lá", emoji: "🟢",
+    headline: "Người Hỗ Trợ",
+    desc: "Ổn định, đồng cảm và đáng tin cậy. Bạn đặt sự hài hoà và các mối quan hệ sâu sắc lên hàng đầu. Thay đổi khiến bạn thận trọng. Lòng trung thành là siêu năng lực của bạn.",
+    ecom: "Trong thương mại điện tử, bạn là tiếng nói của khách hàng và chất keo gắn kết nhóm. Điểm yếu: né tránh những xung đột cần thiết để cải thiện sản phẩm.",
+    traits: ["Đồng cảm", "Kiên nhẫn", "Trung thành", "Điềm tĩnh", "Hợp tác"],
+    bg: "#EAF3DE", text: "#3B6D11", accent: "#3B7D1A", pill: "#C0DD97"
+  },
+  B: {
+    name: "Xanh dương", emoji: "🔵",
+    headline: "Người Phân Tích",
+    desc: "Phân tích, chính xác và tỉ mỉ. Bạn thích làm đúng ngay từ lần đầu tiên. Dữ liệu là vùng an toàn của bạn. Bạn không tin vào những quyết định cảm tính.",
+    ecom: "Trong thương mại điện tử, bạn phát hiện lỗi mà người khác bỏ qua và đảm bảo quyết định có căn cứ. Điểm yếu: tê liệt phân tích khi tốc độ quan trọng hơn sự hoàn hảo.",
+    traits: ["Phân tích", "Chú ý chi tiết", "Có hệ thống", "Chính xác", "Hướng chất lượng"],
+    bg: "#E6F1FB", text: "#185FA5", accent: "#185FA5", pill: "#B5D4F4"
+  }
+};
+
+let answers = {};
+let autoRefresh = null;
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function startSurvey() {
+  answers = {};
+  renderSurvey();
+  showView('view-survey');
+}
+
+function renderSurvey() {
+  const body = document.getElementById('survey-body');
+  body.innerHTML = '';
+  QUESTIONS.forEach((q, qi) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.style.animationDelay = (qi * 0.05) + 's';
+    card.innerHTML = `
+      <div class="q-number">Câu ${qi+1}</div>
+      <div class="q-text">${q.text}</div>
+      <div class="options" id="opts-${qi}">
+        ${q.options.map((opt, oi) => `
+          <div class="option ${answers[qi]===oi?'selected':''}" onclick="selectAnswer(${qi},${oi},this)">
+            <div class="opt-radio">${answers[qi]===oi?'':''}
+            </div>
+            <span class="opt-text">${opt.text}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    body.appendChild(card);
+  });
+  updateProgress();
+}
+
+function selectAnswer(qi, oi, el) {
+  answers[qi] = oi;
+  document.querySelectorAll(`#opts-${qi} .option`).forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  updateProgress();
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = Object.keys(answers).length < QUESTIONS.length;
+  if (!btn.disabled) btn.textContent = 'Xem kết quả của tôi';
+}
+
+function updateProgress() {
+  const n = Object.keys(answers).length;
+  document.getElementById('progress-fill').style.width = (n/QUESTIONS.length*100)+'%';
+  document.getElementById('progress-label').textContent = `${n} / ${QUESTIONS.length} câu đã trả lời`;
+}
+
+function submitSurvey() {
+  const scores = {R:0,Y:0,G:0,B:0};
+  Object.entries(answers).forEach(([qi,oi]) => {
+    scores[QUESTIONS[qi].options[oi].c]++;
+  });
+  const winner = Object.entries(scores).sort((a,b)=>b[1]-a[1])[0][0];
+  saveResult(winner);
+  showResult(winner);
+}
+
+function showResult(colour) {
+  const c = COLOURS[colour];
+  const inner = document.getElementById('result-inner');
+  inner.innerHTML = `
+    <div class="result-badge" style="background:${c.bg};">${c.emoji}</div>
+    <div class="result-eyebrow">Màu sắc của bạn là</div>
+    <div class="result-title" style="color:${c.accent}">${c.name}</div>
+    <div class="result-card" style="background:${c.bg};">
+      <div style="font-size:13px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:${c.text};opacity:0.7;margin-bottom:6px;">${c.headline}</div>
+      <div class="result-desc" style="color:${c.text}">${c.desc}</div>
+      <div class="result-traits">
+        ${c.traits.map(t=>`<span class="trait-pill" style="background:${c.pill};color:${c.text}">${t}</span>`).join('')}
+      </div>
+    </div>
+    <div class="result-ecom">
+      <h3>Trong thương mại điện tử</h3>
+      <p>${c.ecom}</p>
+    </div>
+    <div class="result-actions">
+      <button class="btn-primary" style="background:${c.accent}" onclick="startSurvey()">Làm lại</button>
+      <button class="btn-secondary" onclick="showView('view-landing')">← Về trang chủ</button>
+    </div>
+  `;
+  showView('view-result');
+}
+
+function saveResult(colour) {
+  try {
+    const data = JSON.parse(localStorage.getItem('colour_results') || '{"R":0,"Y":0,"G":0,"B":0}');
+    data[colour] = (data[colour]||0) + 1;
+    localStorage.setItem('colour_results', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function showFacilitator() {
+  renderFacilitator();
+  showView('view-facilitator');
+  if (autoRefresh) clearInterval(autoRefresh);
+  autoRefresh = setInterval(renderFacilitator, 5000);
+}
+
+function renderFacilitator() {
+  let data = {R:0,Y:0,G:0,B:0};
+  try { data = JSON.parse(localStorage.getItem('colour_results') || '{"R":0,"Y":0,"G":0,"B":0}'); } catch(e){}
+  const total = Object.values(data).reduce((a,b)=>a+b,0);
+  document.getElementById('fac-total').textContent = total + ' phản hồi';
+
+  const grid = document.getElementById('fac-grid');
+  const colours = [
+    {k:'R', name:'Đỏ', accent:'#E8321A', bg:'rgba(232,50,26,0.12)', bar:'#E8321A'},
+    {k:'Y', name:'Vàng', accent:'#D4860A', bg:'rgba(212,134,10,0.12)', bar:'#D4860A'},
+    {k:'G', name:'Xanh lá', accent:'#3B7D1A', bg:'rgba(59,125,26,0.12)', bar:'#3B7D1A'},
+    {k:'B', name:'Xanh dương', accent:'#378ADD', bg:'rgba(55,138,221,0.12)', bar:'#378ADD'},
+  ];
+  grid.innerHTML = colours.map(c => {
+    const count = data[c.k] || 0;
+    const pct = total > 0 ? Math.round(count/total*100) : 0;
+    return `
+      <div class="fac-card" style="background:${c.bg}; border: 1px solid ${c.accent}22;">
+        <div class="fac-card-label" style="color:${c.accent}">${c.name}</div>
+        <div class="fac-card-count" style="color:${c.accent}">${count}</div>
+        <div class="fac-card-pct" style="color:${c.accent}">${pct}% trong phòng</div>
+        <div class="fac-bar" style="background:${c.bar}; width:${pct}%"></div>
+      </div>
+    `;
+  }).join('');
+
+  const legend = document.getElementById('fac-legend');
+  legend.innerHTML = Object.entries(COLOURS).map(([k,c]) => `
+    <div class="fac-legend-item">
+      <div class="fac-dot" style="background:${c.accent}"></div>
+      <div>
+        <div class="fac-legend-name">${c.name} — ${c.headline}</div>
+        <div class="fac-legend-text">${c.traits.slice(0,3).join(', ')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function refreshFacilitator() { renderFacilitator(); }
+
+function resetData() {
+  if (confirm('Xoá toàn bộ dữ liệu phản hồi? Hành động này không thể hoàn tác.')) {
+    localStorage.removeItem('colour_results');
+    renderFacilitator();
+  }
+}
+</script>
+</body>
+</html>
