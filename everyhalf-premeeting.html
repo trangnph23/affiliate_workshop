@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Every Half — Pre-Meeting Brief</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cream: #F5F0E8;
+      --espresso: #1C1208;
+      --roast: #3D2B1F;
+      --caramel: #C08040;
+      --latte: #D4B896;
+      --fog: #EDE8DF;
+      --accent: #7A4E2D;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--cream);
+      color: var(--espresso);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    header {
+      background-color: var(--espresso);
+      color: var(--cream);
+      padding: 64px 48px 48px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(192,128,64,0.15) 0%, transparent 70%);
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--caramel), transparent);
+    }
+
+    .header-label {
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--caramel);
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 400;
+      line-height: 1.15;
+      margin-bottom: 8px;
+    }
+
+    header h1 em {
+      font-style: italic;
+      color: var(--latte);
+    }
+
+    .header-meta {
+      margin-top: 24px;
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .meta-item {
+      font-size: 13px;
+      color: var(--latte);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .meta-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--caramel);
+    }
+
+    /* INTRO */
+    .intro {
+      padding: 48px;
+      max-width: 720px;
+      border-bottom: 1px solid var(--fog);
+    }
+
+    .intro p {
+      font-size: 16px;
+      color: var(--roast);
+      line-height: 1.8;
+    }
+
+    .intro p + p { margin-top: 16px; }
+
+    .intro strong {
+      color: var(--espresso);
+      font-weight: 500;
+    }
+
+    /* SECTIONS */
+    .sections {
+      padding: 0 48px 80px;
+    }
+
+    .section {
+      margin-top: 64px;
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--latte);
+    }
+
+    .section-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 48px;
+      font-weight: 400;
+      color: var(--latte);
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: -8px;
+    }
+
+    .section-title-block {}
+
+    .section-tag {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--caramel);
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--espresso);
+    }
+
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--accent);
+      margin-top: 6px;
+      font-style: italic;
+    }
+
+    /* QUESTIONS */
+    .questions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .question-card {
+      background: white;
+      border: 1px solid var(--fog);
+      border-left: 3px solid var(--caramel);
+      padding: 20px 24px;
+      border-radius: 2px;
+      transition: border-left-color 0.2s, box-shadow 0.2s;
+      cursor: default;
+    }
+
+    .question-card:hover {
+      border-left-color: var(--espresso);
+      box-shadow: 0 4px 20px rgba(28,18,8,0.06);
+    }
+
+    .question-card p {
+      font-size: 15px;
+      color: var(--roast);
+      line-height: 1.7;
+    }
+
+    .question-card .q-number {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--caramel);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    /* EXPECTED OUTPUT & SUGGESTION */
+    .expected, .suggestion {
+      margin-top: 14px;
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .expected {
+      background: #FFF8EE;
+      border: 1px solid #E8D5B0;
+      color: var(--roast);
+    }
+
+    .suggestion {
+      background: var(--fog);
+      border: 1px solid #DDD5C8;
+      color: var(--accent);
+    }
+
+    .expected-label, .suggestion-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      color: var(--caramel);
+    }
+
+    .suggestion-label { color: var(--accent); }
+
+    .expected p, .suggestion p { font-size: 13px; }
+
+    /* HINT BOXES */
+    .hint {
+      margin-top: 20px;
+      background: var(--fog);
+      border-radius: 4px;
+      padding: 16px 20px;
+      font-size: 13px;
+      color: var(--accent);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .hint-icon { flex-shrink: 0; margin-top: 1px; }
+
+    /* FOOTER */
+    footer {
+      background: var(--espresso);
+      color: var(--latte);
+      padding: 32px 48px;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: gap;
+      gap: 16px;
+    }
+
+    footer em {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: var(--caramel);
+    }
+
+    /* BADGE */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--fog);
+      border: 1px solid var(--latte);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    /* DIVIDER */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, var(--caramel), transparent);
+      margin: 0 48px;
+      opacity: 0.3;
+    }
+
+    @media (max-width: 600px) {
+      header, .intro, .sections, footer { padding-left: 24px; padding-right: 24px; }
+      .divider { margin-left: 24px; margin-right: 24px; }
+      .header-meta { gap: 16px; }
+      .section-number { font-size: 36px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-label">ITT × ATD — E-commerce Masterclass</div>
+    <h1>Every Half<br/><em>Pre-Meeting Brief</em></h1>
+    <div class="header-meta">
+      <span class="meta-item"><span class="meta-dot"></span> Buổi 1 — Khám phá & Xác minh vấn đề</span>
+      <span class="meta-item"><span class="meta-dot"></span> Hoàn thành trước buổi gặp đầu tiên</span>
+    </div>
+  </header>
+
+  <div class="intro">
+    <p>Trước khi chúng ta gặp nhau, hãy dành thời gian đọc case study về <strong>Every Half Coffee Roasters</strong> và suy nghĩ qua 3 phần câu hỏi dưới đây.</p>
+    <p>Không có đáp án đúng hay sai. Mục tiêu là để bạn <strong>tự hình thành quan điểm</strong> trước khi thảo luận nhóm — dựa trên dữ liệu và suy luận của chính bạn, không phải của facilitator.</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="sections">
+
+    <!-- SECTION 1 -->
+    <div class="section" id="s1">
+      <div class="section-header">
+        <div class="section-number">01</div>
+        <div class="section-title-block">
+          <div class="section-tag">Sản phẩm & Chiến lược</div>
+          <div class="section-title">Hiểu Every Half đang bán gì — và tại sao họ bán online</div>
+          <div class="section-subtitle">Một thương hiệu café offline mạnh. Tại sao lại cần e-commerce?</div>
+        </div>
+      </div>
+
+      <div class="questions">
+        <div class="question-card">
+          <div class="q-number">Câu 1</div>
+          <p>Every Half bán những sản phẩm gì trên kênh online? Những sản phẩm này khác gì so với trải nghiệm tại quán café của họ?</p>
+          <div class="expected">
+            <div class="expected-label">📌 Output kỳ vọng</div>
+            <p>Liệt kê được ít nhất 3–4 dòng sản phẩm đang bán online (ví dụ: Fine Robusta, Drip Bag, Combo...) và chỉ ra được sự khác biệt rõ ràng giữa trải nghiệm online (mua về tự pha) vs. offline (barista tư vấn, trải nghiệm tại quán).</p>
+          </div>
+          <div class="suggestion">
+            <div class="suggestion-label">🔍 Tìm dữ liệu ở đâu</div>
+            <p>Đọc phần <strong>Product Strategy</strong> và <strong>Exhibit 2 (GMV by SKUs)</strong> trong case. Vào Shopee tìm "Every Half" để xem thực tế họ đang bán gì.</p>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="q-number">Câu 2</div>
+          <p>Tại sao một thương hiệu café offline lại muốn mở kênh e-commerce? Kênh online mang lại điều gì mà offline không thể?</p>
+          <div class="expected">
+            <div class="expected-label">📌 Output kỳ vọng</div>
+            <p>Nêu được ít nhất 2 lý do cụ thể — ví dụ: tiếp cận khách hàng ngoài TP.HCM, tạo nguồn doanh thu thụ động, xây dựng tệp khách hàng mới không trùng offline. Không trả lời chung chung kiểu "để bán được nhiều hơn."</p>
+          </div>
+          <div class="suggestion">
+            <div class="suggestion-label">🔍 Tìm dữ liệu ở đâu</div>
+            <p>Đọc phần <strong>Every Half Online Business and Its Challenges</strong> và <strong>Exhibit 3 (GMV by Geography)</strong> — chú ý tỷ lệ khách hàng ngoài TP.HCM đang tăng.</p>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="q-number">Câu 3</div>
+          <p>Theo bạn, e-commerce là <em>kênh cốt lõi</em> hay <em>kênh phụ trợ</em> đối với Every Half hiện tại? Tìm dữ liệu trong case để bảo vệ quan điểm của bạn.</p>
+          <div class="expected">
+            <div class="expected-label">📌 Output kỳ vọng</div>
+            <p>Đưa ra một quan điểm rõ ràng (cốt lõi hoặc phụ trợ) và dẫn ít nhất 1–2 con số từ case để chứng minh. Ví dụ: GMV online hiện tại chỉ 200M/tháng — so sánh với quy mô chuỗi café offline để thấy tỷ trọng.</p>
+          </div>
+          <div class="suggestion">
+            <div class="suggestion-label">🔍 Tìm dữ liệu ở đâu</div>
+            <p>Xem <strong>Exhibit 1</strong> về GMV hiện tại và mục tiêu. Đọc phần giới thiệu để hiểu Every Half ban đầu được xây dựng như thế nào.</p>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="q-number">Câu 4</div>
+          <p>Every Half muốn mang trải nghiệm cà phê đặc sản lên online — điều đó có thực tế không khi bán trên Shopee? Tại sao có, tại sao không?</p>
+          <div class="expected">
+            <div class="expected-label">📌 Output kỳ vọng</div>
+            <p>Trình bày được 1–2 lý do ủng hộ VÀ 1–2 lý do phản bác. Không cần kết luận đúng/sai — quan trọng là bạn nhìn được cả hai chiều của vấn đề.</p>
+          </div>
+          <div class="suggestion">
+            <div class="suggestion-label">🔍 Tìm dữ liệu ở đâu</div>
+            <p>Đọc phần <strong>Branding and Marketing Approach</strong> trong case. Thử vào Shopee tìm cà phê specialty và quan sát cách người dùng đánh giá, mức giá trung bình.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="section" id="s2">
+      <div class="section-header">
+        <div class="section-number">02</div>
+        <div class="section-title-block">
+          <div class="section-tag">Thị trường & Đối thủ</div>
+          <div class="section-title">Hình dung bức tranh toàn cảnh thị trường cà phê online</div>
+          <div class="section-subtitle">Every Half không bán trong chân không — ai đang cạnh tranh với họ?</div>
+        </div>
+      </div>
+
+      <div class="questions">
+        <div class="question-card">
+          <div class="q-number">Câu 1</div>
+          <p>Bạn biết những thương hiệu cà phê nào đang bán online tại Việt Nam? Hãy kể tên 2–3 đối thủ tiềm năng của Every Half.</p>
+          <div class="expected">
+            <div class="expected-label">📌 Output kỳ vọng</div>
+            <p>Liệt kê được 2–3 thương hiệu cụ thể (không phải chuỗi café như Highlands hay The Coffee House) — tập trung vào các thương hiệu cà phê rang xay bán online như K Coffee, Phúc Sinh, Trung Nguyên E-Coffee, hoặc các nhãn specialty nhỏ hơn. Nêu được điểm khác biệt sơ bộ của mỗi thương hiệu.</p>
+          </div>
+          <div class="suggestion">
+            <div class="suggestion-label">🔍 Tìm dữ liệu ở đâu</div>
+            <p>Tìm kiếm "cà phê rang xay" trên Shopee, lọc theo lượt bán cao nhất. Xem thêm TikTok Shop. Chú ý thương hiệu nào xuất hiện nhiều nhất và có lượt đánh giá lớn.</p>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="q-number">Câu 2</div>
+          <p>Người mua cà phê trên Shopee hay TikTok Shop thường tìm kiếm điều gì — giá rẻ, thương hiệu quen, hương vị, hay sự tiện lợi? Every Half phù hợp hay không phù hợp với những kỳ vọng đó?</p>
+          <div class="expected">
+            <div class="expected-label">📌 Output kỳ vọng</div>
+            <p>Xác định được 1–2 yếu tố mua hàng chính của người dùng trên từng nền tảng (Shopee vs. TikTok có thể khác nhau). Đánh giá được Every Half fit hay misfit với từng nền tảng — dựa trên quan sát thực tế, không phải phỏng đoán.</p>
+          </div>
+          <div class="suggestion">
+            <div class="suggestion-label">🔍 Tìm dữ liệu ở đâu</div>
+            <p>Vào Shopee tìm "cà phê specialty" và đọc phần review của người mua. Xem TikTok Shop để quan sát các livestream bán cà phê — giá bán, cách pitching, và phản ứng của người xem.</p>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="q-number">Câu 3</div>
+          <p>Thị trường cà phê đặc sản (specialty coffee) online đang phát triển hay vẫn còn là ngách nhỏ? Điều gì khiến bạn nghĩ vậy?</p>
+          <div class="expected">
+            <div class="expected-label">📌 Output kỳ vọng</div>
+            <p>Đưa ra nhận định có căn cứ — không cần số liệu chính xác, nhưng phải có ít nhất 1 quan sát cụ thể (ví dụ: số lượng shop bán specialty trên Shopee, lượng review, xu hướng tìm kiếm). Tránh trả lời cảm tính.</p>
+          </div>
+          <div class="suggestion">
+            <div class="suggestion-label">🔍 Tìm dữ liệu ở đâu</div>
+            <p>Tìm "specialty coffee Vietnam" trên Google Trends. Đếm số shop bán cà phê specialty trên Shopee và so sánh với cà phê phổ thông (Robusta xay sẵn). Xem số lượt bán và review trung bình.</p>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="q-number">Câu 4</div>
+          <p>Nếu bạn là khách hàng chưa từng đến quán Every Half, bạn có mua cà phê của họ trên Shopee không? Điều gì thuyết phục bạn — hoặc cản trở bạn?</p>
+          <div class="expected">
+            <div class="expected-label">📌 Output kỳ vọng</div>
+            <p>Nêu được ít nhất 1 yếu tố thuyết phục và 1 yếu tố cản trở từ góc nhìn của người mua thực sự — không phải từ góc nhìn của người làm marketing. Câu hỏi này không có đáp án đúng sai, chỉ cần trung thực và cụ thể.</p>
+          </div>
+          <div class="suggestion">
+            <div class="suggestion-label">🔍 Tìm dữ liệu ở đâu</div>
+            <p>Vào trang Shopee của Every Half (tìm "Every Half coffee"), đọc phần mô tả sản phẩm, ảnh, và review. Đặt mình vào vị trí người mua lần đầu — trang shop có đủ thông tin để tin tưởng không?</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="section" id="s3">
+      <div class="section-header">
+        <div class="section-number">03</div>
+        <div class="section-title-block">
+          <div class="section-tag">Số liệu & Tình trạng hiện tại</div>
+          <div class="section-title">Tình hình e-commerce của Every Half đang ở đâu?</div>
+          <div class="section-subtitle">Hãy để dữ liệu tự kể câu chuyện — trước khi bạn đưa ra kết luận.</div>
+        </div>
+      </div>
+
+      <div class="questions">
+        <div class="question-card">
+          <div class="q-number">Câu 1</div>
+          <p>Kênh e-commerce của Every Half đang tăng trưởng hay đi xuống? Hãy dùng số liệu từ case để chứng minh.</p>
+          <div class="expected">
+            <div class="expected-label">📌 Output kỳ vọng</div>
+            <p>Nêu được xu hướng GMV theo tháng (tháng 6, 7, 8) với con số cụ thể và tính được % tăng trưởng MoM. Kết luận rõ ràng: tăng hay giảm, nhanh hay chậm — và so sánh với mục tiêu 500M để đánh giá gap.</p>
+          </div>
+          <div class="suggestion">
+            <div class="suggestion-label">🔍 Tìm dữ liệu ở đâu</div>
+            <p>Xem <strong>Exhibit 1 (Monthly GMV Performance)</strong>. Tính % tăng trưởng MoM bằng công thức: (tháng sau - tháng trước) ÷ tháng trước × 100.</p>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="q-number">Câu 2</div>
+          <p>Doanh thu đang đến từ đâu? Sản phẩm nào đang đóng góp nhiều nhất? Khu vực nào? Nhóm khách hàng nào?</p>
+          <div class="expected">
+            <div class="expected-label">📌 Output kỳ vọng</div>
+            <p>Xác định được top 2–3 sản phẩm theo GMV, khu vực địa lý chiếm tỷ trọng lớn nhất, và nhóm khách hàng đóng góp doanh thu chính (new vs. loyal). Trình bày dưới dạng bảng hoặc danh sách có số liệu đi kèm.</p>
+          </div>
+          <div class="suggestion">
+            <div class="suggestion-label">🔍 Tìm dữ liệu ở đâu</div>
+            <p>Xem <strong>Exhibit 2 (GMV by SKUs)</strong>, <strong>Exhibit 3 (GMV by Geography)</strong>, và <strong>Exhibit 4 (Customer Base by Segment)</strong>. Kết hợp cả 3 exhibit để có bức tranh đầy đủ.</p>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="q-number">Câu 3</div>
+          <p>Có một con số trong case khiến bạn lo ngại nhất — đó là con số nào, và tại sao?</p>
+          <div class="expected">
+            <div class="expected-label">📌 Output kỳ vọng</div>
+            <p>Chọn được 1 con số cụ thể (không phải một khái niệm chung chung) và giải thích được tại sao con số đó đáng lo — liên kết được với rủi ro thực tế của doanh nghiệp. Câu này không có đáp án chuẩn, nhưng lý luận phải rõ ràng.</p>
+          </div>
+          <div class="suggestion">
+            <div class="suggestion-label">🔍 Tìm dữ liệu ở đâu</div>
+            <p>Rà soát lại tất cả các Exhibit. Gợi ý để suy nghĩ: capacity 100 đơn/ngày, 80%+ GMV phụ thuộc Shopee, 60% là khách mới, AOV khách mới chỉ 300K — cái nào là vấn đề lớn nhất?</p>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="q-number">Câu 4</div>
+          <p>Với tốc độ tăng trưởng hiện tại, Every Half có thể đạt mục tiêu <strong>500M VND/tháng</strong> vào tháng 12/2025 không? Hãy tính thử.</p>
+          <div class="expected">
+            <div class="expected-label">📌 Output kỳ vọng</div>
+            <p>Tính được GMV dự báo đến tháng 12/2025 nếu giữ nguyên tốc độ tăng trưởng MoM hiện tại. So sánh với mục tiêu 500M và kết luận: đạt được không, thiếu bao nhiêu, và cần làm gì để đóng gap đó.</p>
+          </div>
+          <div class="suggestion">
+            <div class="suggestion-label">🔍 Tìm dữ liệu ở đâu</div>
+            <p>Dùng số liệu từ <strong>Exhibit 1</strong>. Tính tăng trưởng trung bình MoM (~10%), sau đó chiếu từ tháng 8/2025 (205M) đến tháng 12/2025 (4 tháng tiếp theo). Dùng Excel hoặc máy tính tay đều được.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <span><em>"Every Half Bean Has Its Soulmate."</em></span>
+    <span>ITT × ATD E-commerce Masterclass — 2025</span>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.section').forEach(s => observer.observe(s));
+  </script>
+
+</body>
+</html>
