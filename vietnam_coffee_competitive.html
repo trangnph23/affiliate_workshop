@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vietnam Home Barista — Competitive Landscape</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F2ED;
+    --surface: #FFFFFF;
+    --border: #E2DDD6;
+    --text-primary: #1A1816;
+    --text-secondary: #6B6560;
+    --text-muted: #A09990;
+    --green: #2D6A4F;
+    --green-light: #E8F4EF;
+    --green-mid: #74C69D;
+    --amber: #B5820A;
+    --amber-light: #FDF3DC;
+    --blue: #1A4A7A;
+    --blue-light: #E8F0FA;
+    --coral: #C04A2A;
+    --coral-light: #FAEAE5;
+    --gray-fill: #EEEBE6;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+
+  header {
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+  }
+
+  h1 span { color: var(--green); }
+
+  .header-meta {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    background: var(--gray-fill);
+    padding: 4px;
+    border-radius: 10px;
+    width: fit-content;
+  }
+
+  .tab {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .tab.active {
+    background: var(--surface);
+    color: var(--text-primary);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .tab:hover:not(.active) { color: var(--text-primary); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* PILLS */
+  .pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 400;
+    padding: 2px 7px;
+    border-radius: 20px;
+    vertical-align: middle;
+  }
+  .pill-green { background: var(--green-light); color: var(--green); }
+  .pill-amber { background: var(--amber-light); color: var(--amber); }
+  .pill-blue  { background: var(--blue-light);  color: var(--blue); }
+  .pill-coral { background: var(--coral-light); color: var(--coral); }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+  }
+
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+
+  .card-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* BARS */
+  .bar-group { margin-bottom: 14px; }
+
+  .bar-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+  }
+
+  .bar-label { font-size: 12px; color: var(--text-primary); font-weight: 500; }
+  .bar-value { font-family: var(--mono); font-size: 11px; color: var(--text-secondary); }
+
+  .bar-track {
+    height: 24px;
+    background: var(--gray-fill);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .bar-note {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 3px;
+    font-family: var(--mono);
+  }
+
+  /* SECTION HEADINGS */
+  .section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 20px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-title:first-child { margin-top: 0; }
+
+  /* NOTICE BOX */
+  .notice {
+    background: var(--gray-fill);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .notice strong { color: var(--text-primary); font-weight: 600; }
+
+  /* 2x2 GRID */
+  .matrix-wrap {
+    position: relative;
+  }
+
+  .matrix-axis-x {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    padding: 0 2px;
+    margin-bottom: 6px;
+  }
+
+  .matrix-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 3px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .quad {
+    background: var(--surface);
+    padding: 14px;
+    min-height: 160px;
+  }
+
+  .quad-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  .quad-brand {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .quad-note {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    line-height: 1.5;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+  }
+
+  .matrix-axis-y-wrap {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .matrix-axis-y {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .matrix-axis-bottom {
+    display: flex;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+
+  /* GAPS */
+  .gap-item {
+    border-left: 3px solid;
+    border-radius: 0 10px 10px 0;
+    padding: 12px 14px;
+    background: var(--surface);
+    margin-bottom: 10px;
+  }
+
+  .gap-title {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 5px;
+    color: var(--text-primary);
+  }
+
+  .gap-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+
+  .disclaimer {
+    background: #FDF8F2;
+    border: 1px solid #EAE0D0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-top: 16px;
+  }
+
+  .disclaimer strong { color: var(--text-primary); font-weight: 600; }
+
+  /* TIER BADGES */
+  .tier-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    background: var(--gray-fill);
+    color: var(--text-secondary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-right: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="header-label">Research output — competitive landscape mapping</div>
+    <h1>Vietnam <span>Home Barista</span> Coffee Market</h1>
+    <div class="header-meta">Ground & whole bean segment · 2024–2025 · All figures noted with confidence level</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showPanel('scale', this)">Segment scale</button>
+    <button class="tab" onclick="showPanel('map', this)">Competitive 2×2</button>
+    <button class="tab" onclick="showPanel('players', this)">Players by tier</button>
+    <button class="tab" onclick="showPanel('gaps', this)">Gaps & evidence</button>
+  </div>
+
+  <!-- PANEL 1: SCALE -->
+  <div id="panel-scale" class="panel active">
+    <div class="notice">
+      <strong>Confidence key:</strong>
+      <span class="pill pill-green">measured</span> sourced directly from published data &nbsp;
+      <span class="pill pill-amber">estimated</span> derived by applying reported % to market total &nbsp;
+      <span class="pill pill-coral">inferred</span> qualitative reasoning, no hard number found
+    </div>
+
+    <div class="section-title">At-home coffee market context (off-trade)</div>
+
+    <div class="bar-group">
+      <div class="bar-meta">
+        <span class="bar-label">Total at-home coffee market (Vietnam, 2025)</span>
+        <span class="pill pill-green">measured</span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:100%; background:#2D6A4F; color:#E8F4EF;">≈ USD 1.73 billion</div>
+      </div>
+      <div class="bar-note">Source: Statista Market Forecast 2025</div>
+    </div>
+
+    <div class="section-title">Product type breakdown (at-home)</div>
+
+    <div class="bar-group">
+      <div class="bar-meta">
+        <span class="bar-label">Instant / soluble</span>
+        <span><span class="pill pill-green">measured</span> <span class="bar-value">~43% · ≈ USD 744M</span></span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:43%; background:#6B6560; color:#F5F2ED;">43%</div>
+      </div>
+      <div class="bar-note">Source: IMARC 2024 — "instant coffee 43.3% market share"</div>
+    </div>
+
+    <div class="bar-group">
+      <div class="bar-meta">
+        <span class="bar-label">Roast & ground coffee ← home barista territory</span>
+        <span><span class="pill pill-amber">estimated</span> <span class="bar-value">~32% · ≈ USD 554M</span></span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:32%; background:#2D6A4F; color:#E8F4EF;">32% · ~USD 554M</div>
+      </div>
+      <div class="bar-note">Derived: total minus instant, RTD, pods. Ground is "#2 product type" (Mordor, DataInsights) — exact % not published</div>
+    </div>
+
+    <div class="bar-group">
+      <div class="bar-meta">
+        <span class="bar-label">RTD / ready-to-drink</span>
+        <span><span class="pill pill-green">measured</span> <span class="bar-value">~18% · ≈ USD 311M</span></span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:18%; background:#AFA9EC; color:#26215C;">18% — fastest growth 7.9% CAGR</div>
+      </div>
+      <div class="bar-note">Source: Mordor Intelligence 2024</div>
+    </div>
+
+    <div class="bar-group">
+      <div class="bar-meta">
+        <span class="bar-label">Pods / capsules</span>
+        <span><span class="pill pill-amber">estimated</span> <span class="bar-value">~7% · ≈ USD 120M</span></span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:7%; background:#C04A2A; color:#FAEAE5;">7%</div>
+      </div>
+      <div class="bar-note">Derived residual. Mordor flags "limited equipment adoption and price sensitivity" as growth constraint</div>
+    </div>
+
+    <div class="section-title">Within roast & ground (~USD 554M): need-group breakdown</div>
+    <div class="notice" style="margin-bottom:12px;">These splits are <span class="pill pill-coral">inferred</span> — derived from the 87.7% conventional vs 12.3% specialty share (Mordor 2024) applied to the ground segment, then adjusted for format usage. No primary survey data segments home-barista demand by need group directly.</div>
+
+    <div class="bar-group">
+      <div class="bar-meta">
+        <span class="bar-label">Phin traditionalists</span>
+        <span><span class="pill pill-coral">inferred</span> <span class="bar-value">~60% · ≈ USD 330M</span></span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:60%; background:#6B6560; color:#F5F2ED;">~60% — mass, low ASP, phin-optimized Robusta blends</div>
+      </div>
+    </div>
+
+    <div class="bar-group">
+      <div class="bar-meta">
+        <span class="bar-label">Aspiring home baristas</span>
+        <span><span class="pill pill-coral">inferred</span> <span class="bar-value">~30% · ≈ USD 166M</span></span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:30%; background:#2D6A4F; color:#E8F4EF;">~30% — urban, growing, experimenting with methods</div>
+      </div>
+    </div>
+
+    <div class="bar-group">
+      <div class="bar-meta">
+        <span class="bar-label">Origin / specialty seekers</span>
+        <span><span class="pill pill-coral">inferred</span> <span class="bar-value">~10% · ≈ USD 55M</span></span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:10%; background:#B5820A; color:#FDF3DC;">~10% — niche, high ASP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: 2x2 MAP -->
+  <div id="panel-map" class="panel">
+    <div class="notice">
+      Axes: <strong>x</strong> = brand positioning (mass heritage → specialty/modern). <strong>y</strong> = primary home channel focus (café-first → retail/DTC-first). <span class="pill pill-coral">inferred</span> from public brand signals, distribution strategy, and product portfolio — not market share data.
+    </div>
+
+    <div class="matrix-axis-x">
+      <span>← mass / heritage positioning</span>
+      <span>specialty / modern →</span>
+    </div>
+
+    <div style="display:flex; gap:8px; align-items:stretch;">
+      <div style="display:flex; flex-direction:column; justify-content:space-between; padding: 4px 0;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;">retail / DTC-first →</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;">← café-first</div>
+      </div>
+
+      <div class="matrix-grid" style="flex:1;">
+        <!-- top-left: heritage + retail -->
+        <div class="quad">
+          <div class="quad-label">Heritage retail leaders</div>
+          <div class="quad-brand"><span class="dot" style="background:#6B6560;"></span>Trung Nguyên Legend</div>
+          <div class="quad-brand"><span class="dot" style="background:#6B6560;"></span>Vinacafé (Masan)</div>
+          <div class="quad-brand"><span class="dot" style="background:#6B6560;"></span>Mê Trang</div>
+          <div class="quad-note">High distribution reach, phin-optimized, price-anchored. Own the traditionalist need group. Weak specialty credibility.</div>
+        </div>
+
+        <!-- top-right: specialty + retail — GROWTH ZONE -->
+        <div class="quad" style="border: 2px solid var(--green); position:relative;">
+          <div style="position:absolute;top:-1px;right:10px;background:var(--green);color:#E8F4EF;font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:0 0 6px 6px;">growth zone</div>
+          <div class="quad-label">Specialty retail / DTC</div>
+          <div class="quad-brand"><span class="dot" style="background:#2D6A4F;"></span>Every Half</div>
+          <div class="quad-brand"><span class="dot" style="background:#2D6A4F;"></span>La Viet Coffee</div>
+          <div class="quad-brand"><span class="dot" style="background:#2D6A4F;"></span>Copper Cow</div>
+          <div class="quad-brand"><span class="dot" style="background:#2D6A4F;"></span>Origin Coffee</div>
+          <div class="quad-note">Strong story, online-native, single-origin focus. Thin distribution outside HCM/HN. Least occupied, fastest-growing quadrant.</div>
+        </div>
+
+        <!-- bottom-left: heritage + café -->
+        <div class="quad">
+          <div class="quad-label">Café-anchored heritage</div>
+          <div class="quad-brand"><span class="dot" style="background:#6B6560;"></span>Highlands (retail line)</div>
+          <div class="quad-brand"><span class="dot" style="background:#6B6560;"></span>Trung Nguyên cafés</div>
+          <div class="quad-note">Primary revenue in-store. Home product lines secondary, low differentiation.</div>
+        </div>
+
+        <!-- bottom-right: specialty + café -->
+        <div class="quad">
+          <div class="quad-label">Specialty café-anchored</div>
+          <div class="quad-brand"><span class="dot" style="background:#2D6A4F;"></span>Saigon Coffee Roastery</div>
+          <div class="quad-brand"><span class="dot" style="background:#2D6A4F;"></span>Building Coffee / BEL</div>
+          <div class="quad-brand"><span class="dot" style="background:#2D6A4F;"></span>Lacàph</div>
+          <div class="quad-brand"><span class="dot" style="background:#2D6A4F;"></span>Sơn Pacamara</div>
+          <div class="quad-note">Barista credibility, education-led. Café is primary channel + brand proof point. Retail is secondary.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notice" style="margin-top:16px;">
+      <strong>Key read:</strong> Top-right (specialty + retail/DTC) is the least occupied and fastest-growing. No single player dominates the aspiring home barista who wants to buy beans online, learn at home, and upgrade from instant without entering a specialty café.
+    </div>
+  </div>
+
+  <!-- PANEL 3: PLAYERS -->
+  <div id="panel-players" class="panel">
+
+    <div class="section-title">Tier A — Mass / heritage (dominant volume)</div>
+
+    <div class="card">
+      <div class="card-row">
+        <span class="card-name">Trung Nguyên Legend</span>
+        <span class="pill pill-coral">~35–40% ground share (inferred)</span>
+      </div>
+      <div class="card-desc">Widest distribution: 660+ stores + mass retail nationwide. Covers phin traditionalists and upper-mass. Launched Legend Gold Freeze-Dried (Mar 2025) — first real premium home move. Weakness: brand skews old, low trust among specialty-oriented millennials.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-row">
+        <span class="card-name">Vinacafé (Masan Group)</span>
+        <span class="pill pill-coral">~15–20% share (inferred)</span>
+      </div>
+      <div class="card-desc">59,000+ retail points. Household staple, strong brand recall. Almost no specialty play — skews heavily instant. Home barista is not a strategic priority.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-row">
+        <span class="card-name">Mê Trang</span>
+        <span class="pill pill-coral">regional, Central VN base</span>
+      </div>
+      <div class="card-desc">Quality mid-range, Khánh Hòa origin story. Loyal regional base. Limited HCM/HN specialty penetration. No meaningful DTC or digital push yet.</div>
+    </div>
+
+    <div class="section-title">Tier B — New-wave specialty roasters (growing)</div>
+
+    <div class="card">
+      <div class="card-row">
+        <span class="card-name">Every Half</span>
+        <span class="pill pill-coral">niche — no public revenue</span>
+      </div>
+      <div class="card-desc">Founded by ex–The Coffee House founder. Farm-direct sourcing: Sơn La Arabica + Pleiku Robusta. Closest to the "specialty + retail/DTC" white space. Strongest brand credibility with urban millennials. Commitment to farmer sustainability.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-row">
+        <span class="card-name">La Viet Coffee</span>
+        <span class="pill pill-coral">niche — Đà Lạt-based</span>
+      </div>
+      <div class="card-desc">Farm-to-cup, internationally recognized, SCA engagement. Strong online presence. Education-forward content. Well-positioned for origin-seeker need group.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-row">
+        <span class="card-name">Lacàph</span>
+        <span class="pill pill-coral">niche — HCM-based</span>
+      </div>
+      <div class="card-desc">Storytelling-forward: sources from Sơn La minority farmers. Offers phin blends and espresso blends for home — one of few bridging format accessibility with cultural story. Early mover on "pride + specialty" angle. Café + online distribution.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-row">
+        <span class="card-name">Building Coffee / BEL</span>
+        <span class="pill pill-coral">niche — B2B + retail</span>
+      </div>
+      <div class="card-desc">Wholesale roastery + specialty café (Bình Thạnh) + education hub. Key supplier to other specialty cafés. Consumer retail available but not the primary play. Strong credibility among trade buyers and barista community.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-row">
+        <span class="card-name">Saigon Coffee Roastery</span>
+        <span class="pill pill-coral">pioneer, niche</span>
+      </div>
+      <div class="card-desc">Founded by Phap Vo — a pioneer of specialty coffee in Vietnam. Espresso-culture focus. Café is the primary touchpoint; retail/home sales are secondary and not aggressively pushed.</div>
+    </div>
+
+    <div class="section-title">Tier C — Emerging / format disruptors</div>
+
+    <div class="card">
+      <div class="card-row">
+        <span class="card-name">Copper Cow</span>
+        <span class="pill pill-amber">small, growing</span>
+      </div>
+      <div class="card-desc">Vietnamese-American brand. Organic certified Jan 2025. Drip-bag format — high convenience, premium positioning. Primarily export-oriented today but entering domestic retail. Targets health-conscious and diaspora-influenced segment.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-row">
+        <span class="card-name">Origin Coffee</span>
+        <span class="pill pill-amber">small, digital-native</span>
+      </div>
+      <div class="card-desc">Direct-trade, drum-roasted. Single-origin + capsule + drip bag + cold brew. Strong quality signaling: one-way valve packaging, organic cert, QR traceability. Covers the origin-seeker need group from a convenience angle.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-row">
+        <span class="card-name">Nespresso (imported)</span>
+        <span class="pill pill-amber">growing, equipment-dependent</span>
+      </div>
+      <div class="card-desc">Capsule segment constrained by machine adoption (~7% est.). But Vietnam coffee machine market valued at USD 35M and growing. One to watch as mid-income households upgrade. No Vietnamese competitor credibly owns this format yet.</div>
+    </div>
+  </div>
+
+  <!-- PANEL 4: GAPS -->
+  <div id="panel-gaps" class="panel">
+    <div class="notice">Each gap is stated with its evidence basis and confidence level. "Gap" = no player currently owns this dimension credibly at scale.</div>
+
+    <div class="gap-item" style="border-color: var(--green);">
+      <div class="gap-title">1. Specialty + nationwide retail distribution</div>
+      <div class="gap-desc">Specialty brands (La Viet, Lacàph, Building Coffee) exist through own cafés and Shopee/Lazada. None have cracked supermarket or convenience store shelf at scale. Trung Nguyên owns mass retail but not specialty positioning. The two attributes haven't been combined by any single player.</div>
+      <div><span class="pill pill-green">distribution data sourced</span> <span class="pill pill-coral">gap claim inferred</span></div>
+    </div>
+
+    <div class="gap-item" style="border-color: var(--green);">
+      <div class="gap-title">2. Home barista education at accessible entry point</div>
+      <div class="gap-desc">Building Coffee runs barista workshops, but they are B2B and trade-adjacent. No brand has built a scalable consumer education ecosystem (starter kits, video content, how-to guides) for the aspiring home brewer in Vietnam. Globally, Blue Bottle, Onibus, and Counter Culture do this well — no local equivalent at mass reach.</div>
+      <div><span class="pill pill-coral">qualitative inference — no survey data on home barista education demand found publicly</span></div>
+    </div>
+
+    <div class="gap-item" style="border-color: #74C69D;">
+      <div class="gap-title">3. Convenience format for specialty (drip bag / capsule)</div>
+      <div class="gap-desc">Copper Cow and Origin Coffee are doing drip bags, primarily for export. The domestic market for single-serve specialty formats remains thin. RTD is growing at 7.9% CAGR but is not home-barista. Pod segment at ~7% with machine adoption as the constraint — but as machine penetration grows, this window opens.</div>
+      <div><span class="pill pill-green">RTD CAGR + pod share sourced (Mordor 2024)</span> <span class="pill pill-coral">domestic drip-bag gap inferred</span></div>
+    </div>
+
+    <div class="gap-item" style="border-color: #74C69D;">
+      <div class="gap-title">4. DTC subscription / recurring purchase model</div>
+      <div class="gap-desc">E-commerce for specialty coffee is growing via Shopee and Lazada. But no dominant specialty brand has built a subscription or recurring purchase model domestically. Heritage brands have retail; specialty players have cafés. The DTC recurring revenue model sits between both — and nobody owns it.</div>
+      <div><span class="pill pill-green">e-commerce growth sourced (Mordor, hello5coffee.com)</span> <span class="pill pill-coral">subscription gap inferred</span></div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>What's missing to validate these gaps properly:</strong> No public data on home barista household penetration rate. No brand-level market share data for the ground coffee segment. No consumer survey on brewing method adoption at home (phin vs. V60 vs. espresso). These are the three inputs that would either confirm or collapse the gap claims. A retail audit (Vinmart, Co.opmart, specialty store in Thảo Điền) + a 200-person consumer survey would be sufficient primary research to validate within 2–3 weeks.
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function showPanel(id, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>
